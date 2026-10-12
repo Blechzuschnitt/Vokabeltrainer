@@ -449,7 +449,7 @@ function renderAdminSheet(){
       : `<p class="muted">Noch keine Kinder. Gib den Klassen-Code weiter.</p>`}
     <div class="admsub">Vokabellisten <span>${c.lists.length}</span></div>
     ${c.lists.length ? `<ul class="plain admlist">${c.lists.map(l => li(esc(l.name), plural(l.words.length, "Wort", "Wörter"), `<button class="iconbtn" data-act="editlist" data-id="${l.id}">Bearbeiten</button>${ask("dellist", l.id, "Löschen")}`)).join("")}</ul>` : `<p class="muted">Noch keine Klassen-Liste.</p>`}
-    <button class="btn sky small" data-act="newlist">+ Neue Liste</button>
+    <div class="row"><button class="btn sky small" data-act="newlist">+ Neue Liste</button><button class="btn soft small" data-act="info">Infoblatt für Eltern</button></div>
   </div>`).join("") || `<p class="muted">Noch keine Klasse.</p>`;
   const k = kiKey();
   $("kiState").textContent = k ? `Schlüssel gespeichert (endet auf …${k.slice(-4)}). Er liegt nur auf diesem Gerät.` : "Kein Schlüssel gespeichert. Ohne Schlüssel trägst du Listen von Hand ein.";
@@ -496,6 +496,7 @@ $("admClasses").addEventListener("click", async e => {
   const act = b.dataset.act, id = b.dataset.id, cls = AO.classes.find(c => c.id === b.closest("[data-class]").dataset.class);
   const twice = () => { if (admConfirm === act + id) { admConfirm = null; return true; } admConfirm = act + id; renderAdminSheet(); return false; };
   try{
+    if (act === "info"){ jset("vokabel-klasse-infoblatt", {name:cls.name, code:cls.join_code}); window.open("eltern-info.html", "_blank"); return; }
     if (act === "rename"){ admRename = id; admConfirm = null; renderAdminSheet(); const i = document.querySelector(`[data-ren="${id}"]`); if (i){ i.focus(); i.select(); } return; }
     if (act === "rencancel"){ admRename = null; renderAdminSheet(); return; }
     if (act === "renok"){ await rpc("admin_rename_player", {p_player:id, p_nickname:document.querySelector(`[data-ren="${id}"]`).value}); admRename = null; toast("Spitzname geändert"); }
@@ -2009,4 +2010,6 @@ setInterval(() => { if (tab === "dash") renderDash(); }, 60000);
 
 renderAll(); setStorage("");
 initStore();
+// Service Worker: App installierbar und ohne Internet startbar
+if ("serviceWorker" in navigator) addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
 })();

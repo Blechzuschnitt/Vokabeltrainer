@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vokabeltrainer – Infoblatt für Eltern</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* Eine Seite zum Ausdrucken: immer hell, ohne den bunten App-Hintergrund */
+  :root{color-scheme:light}
+  html,body{background:#fff!important;background-image:none!important;color:#1a1f3a}
+  .info{max-width:720px;margin:0 auto;padding:24px 20px 40px;font-weight:600}
+  .info header{display:flex;gap:16px;align-items:center}
+  .info header img{width:84px;height:84px;border-radius:20px}
+  .info h1{margin:0;font-size:2rem;line-height:1.1}
+  .info h2{font-size:1.2rem;margin:20px 0 4px}
+  .info p{margin:4px 0}
+  .info ul,.info ol{margin:4px 0;padding-left:22px}
+  .info li{margin:3px 0}
+  .box{border:3px solid #1a1f3a;border-radius:18px;padding:12px 16px;margin-top:14px}
+  .box .big{font-family:var(--display);font-size:1.5rem;letter-spacing:.06em;overflow-wrap:anywhere}
+  .box .code{font-family:var(--display);font-size:2.2rem;letter-spacing:.2em}
+  .line{display:inline-block;min-width:220px;border-bottom:3px solid #1a1f3a;height:1.6em;vertical-align:bottom}
+  .small{font-size:.85rem;color:#55507e}
+  .noprint{margin-top:22px}
+  @media print{.noprint{display:none} .info{padding:0} @page{margin:16mm}}
+</style>
+</head>
+<body>
+<main class="info">
+  <header>
+    <img src="assets/icons/icon-192.png" alt="">
+    <div><h1>Vokabeltrainer</h1><p>Englisch-Vokabeln üben, <span id="cls">für unsere Klasse</span></p></div>
+  </header>
+
+  <div class="box">
+    <p>Adresse der App:</p>
+    <p class="big" id="url"></p>
+    <p style="margin-top:10px">Klassen-Code:</p>
+    <p class="code" id="code"><span class="line"></span></p>
+  </div>
+
+  <h2>Was ist das?</h2>
+  <p>Eine kostenlose Web-App, mit der die Kinder die Vokabeln aus dem Englischbuch abfragen. Für richtige Antworten gibt es Punkte (XP) und Kristalle, dazu ein Tier als Begleiter und eine Wochen-Rangliste der Klasse. Die App läuft im Browser auf Handy, Tablet und Computer, auch auf iPhone und iPad.</p>
+
+  <h2>So geht es los</h2>
+  <ol>
+    <li>Adresse oben im Browser öffnen.</li>
+    <li>Den Kasten „Für Eltern“ lesen und das Häkchen setzen.</li>
+    <li>Ihr Kind wählt einen Spitznamen (bitte nicht den echten Namen) und tippt den Klassen-Code ein.</li>
+    <li>Die App zeigt einen <b>Geräte-Code</b>. Bitte hier notieren: <span class="line"></span><br>
+      <span class="small">Mit ihm kommt Ihr Kind auf einem zweiten Gerät oder nach einem Handywechsel wieder an seinen Spielstand.</span></li>
+    <li>Wer mag, legt die App auf den Startbildschirm: im Browser-Menü „Zum Home-Bildschirm“ oder „App installieren“.</li>
+  </ol>
+
+  <h2>Datenschutz in Kürze</h2>
+  <ul>
+    <li>Gespeichert werden nur Spitzname, Klasse, Lernstand und die XP der gespielten Runden, auf einem Server in Frankfurt.</li>
+    <li>Kein echter Name, keine E-Mail, keine Fotos, kein Standort. Keine Werbung, keine Tracker.</li>
+    <li>In der Rangliste sehen die Kinder der Klasse nur die ersten zehn Plätze und ihren eigenen.</li>
+    <li>Das Konto lässt sich jederzeit in den Einstellungen der App löschen.</li>
+    <li>Alles Weitere steht unter „Datenschutz“ in der App.</li>
+  </ul>
+
+  <h2>Fragen?</h2>
+  <p>Ansprechpartner: <span class="line"></span></p>
+
+  <p class="noprint"><button class="btn" onclick="print()">Drucken</button></p>
+</main>
+<script>
+  // Adresse der App aus der Adresse dieser Seite. Klasse und Code kommen aus dem Admin-Bereich („Infoblatt“), sonst bleibt eine Linie zum Ausfüllen.
+  document.getElementById("url").textContent = new URL("./", location.href).href.replace(/^https?:\/\//, "");
+  try{
+    const d = JSON.parse(localStorage.getItem("vokabel-klasse-infoblatt") || "null"); localStorage.removeItem("vokabel-klasse-infoblatt");
+    if (d && d.code){ document.getElementById("code").textContent = d.code; document.getElementById("cls").textContent = "für die Klasse " + d.name; }
+  }catch(e){}
+</script>
+</body>
+</html>
