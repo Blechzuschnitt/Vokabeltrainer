@@ -606,7 +606,7 @@ function renderLB(){
   }
   $("lbList").innerHTML = h + `<p class="lbfoot">Gezeigt werden nur die ersten 10 Plätze und dein eigener.<br>Eure Klasse zusammen: <b>${LB.class_xp} XP</b></p>`;
 }
-$("lb").onclick = () => { $("lbSheet").hidden = false; fx("tap"); loadLB(); };
+$("lb").onclick = () => { $("lbSheet").hidden = false; $("lbSheet").querySelector(".sheet").scrollTop = 0; fx("tap"); loadLB(); };
 $("lbClose").onclick = () => { $("lbSheet").hidden = true; };
 $("lbSheet").addEventListener("click", e => { if (e.target === $("lbSheet")) $("lbSheet").hidden = true; });
 document.addEventListener("keydown", e => { if (e.key === "Escape") $("lbSheet").hidden = true; });

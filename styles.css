@@ -650,3 +650,8 @@ body.inquiz .lvlrow{margin-top:0}
 .consent .chk{margin-top:10px;font-size:.95rem}
 .delbox{margin-top:10px;display:grid;gap:8px}
 .delbox p{margin:0;font-weight:700;font-size:.88rem}
+/* Rangliste öffnet sich oben am Bildschirm, wie die Einstellungen */
+#lbSheet{align-items:flex-start;padding:calc(12px + env(safe-area-inset-top,0px)) 12px 12px}
+#lbSheet .sheet{border-radius:28px;padding-bottom:20px;max-height:100%;animation:drop .22s ease-out}
+#lbSheet .grab{display:none}
+@media (prefers-reduced-motion:reduce){#lbSheet .sheet{animation:none}}
