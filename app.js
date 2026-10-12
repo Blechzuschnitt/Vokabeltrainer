@@ -82,7 +82,8 @@ function petSvg(k){
 
 /* ---------- Speicher: Supabase (EU) mit Browser-Kopie für offline ---------- */
 const SB_URL = "https://kkohrbawvnixqawwhwjz.supabase.co", SB_KEY = "sb_publishable_EIkJPGDka-PZBeDRRlgyYw_SixYiu7V";
-const SES_KEY = "vokabel-klasse-session", PRO_KEY = "vokabel-klasse-profil", DIRTY_KEY = "vokabel-klasse-offen", SYNCED_KEY = "vokabel-klasse-abgeglichen";
+const SES_KEY = "vokabel-klasse-session", PRO_KEY = "vokabel-klasse-profil", DIRTY_KEY = "vokabel-klasse-offen", SYNCED_KEY = "vokabel-klasse-abgeglichen",
+  AV_KEY = "vokabel-klasse-avatar", XPQ_KEY = "vokabel-klasse-runden", LB_KEY = "vokabel-klasse-rangliste";
 let S = null, saveTimer = null, SESSION = null, PROFILE = null;
 const jget = k => { try{ const t = localStorage.getItem(k); return t ? JSON.parse(t) : null; }catch(e){ return null; } };
 const jset = (k, v) => { try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
@@ -126,6 +127,8 @@ async function push(){
   try{
     await sb("game_state?on_conflict=player_id", {method:"POST", headers:{Prefer:"resolution=merge-duplicates,return=minimal"}, body:{player_id:PROFILE.player_id, state:obj, updated_at:new Date().toISOString()}});
     if ((lsGet() || {}).rev === obj.rev) jset(DIRTY_KEY, false);
+    const av = JSON.stringify({pet:obj.pet || null, outfit:(obj.pet && obj.outfits && obj.outfits[obj.pet]) || {}});
+    if (av !== jget(AV_KEY)){ await sb("players?id=eq." + PROFILE.player_id, {method:"PATCH", headers:{Prefer:"return=minimal"}, body:{avatar:JSON.parse(av)}}); jset(AV_KEY, av); }
     setStorage("db");
   }catch(e){ setStorage("local"); }
 }
@@ -137,7 +140,7 @@ async function pull(){
     if (remote && Array.isArray(remote.words) && (first || (remote.rev || 0) > (S.rev || 0))){
       S = remote; normalizeState(); lsSet(S); jset(DIRTY_KEY, false); applyTheme(); renderAll();
     } else if (!remote || (S.rev || 0) > (remote.rev || 0)){ if (!S.rev) S.rev = Date.now(); lsSet(S); jset(DIRTY_KEY, true); await push(); }
-    jset(SYNCED_KEY, true); setStorage("db");
+    jset(SYNCED_KEY, true); setStorage("db"); loadLB();
   }catch(e){ setStorage("local"); }
 }
 function save(){
@@ -376,6 +379,53 @@ window.addEventListener("online", pull);
 document.addEventListener("visibilitychange", () => { document.hidden ? push() : pull(); });
 setInterval(push, 60000);
 
+/* ---------- Rangliste der Klasse (diese Woche) ---------- */
+let LB = jget(LB_KEY), lbAt = 0;
+// Gespielte Runden warten in einer Liste, bis sie online gebucht sind (auch nach einer Runde ohne Internet)
+async function flushXp(){
+  let q = jget(XPQ_KEY) || [];
+  while (q.length){
+    try{ await sb("rpc/log_round", {method:"POST", body:{p_xp:q[0].xp, p_words:q[0].words}}); }
+    catch(e){ if (e.status !== 400) throw e; }   // 400 = unplausible Runde, wird verworfen
+    q = (jget(XPQ_KEY) || []).slice(1); jset(XPQ_KEY, q);
+  }
+}
+async function loadLB(){
+  if (!SESSION || !PROFILE) return null;
+  try{ await flushXp(); LB = await sb("rpc/leaderboard", {method:"POST", body:{}}); lbAt = Date.now(); jset(LB_KEY, LB); renderLB(); return LB; }
+  catch(e){ renderLB(); return null; }
+}
+const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+function lbAvatar(a){
+  if (!a || !own(PETS, a.pet) || !ART[a.pet]) return mascotSvg();
+  const o = {}; SLOTS.forEach(([k]) => { const v = a.outfit && a.outfit[k]; if (typeof v === "string" && own(WEAR, v)) o[k] = v; });
+  return avatarSVG(a.pet, o);
+}
+function renderLB(){
+  const el = $("lb"); if (!el) return;
+  if (!LB){ el.innerHTML = `<p class="muted" style="margin:0">Die Rangliste erscheint, sobald du online bist.</p>`; $("lbWhen").textContent = ""; return; }
+  const left = new Date(LB.week_end) - Date.now(), days = Math.floor(left / 864e5), hrs = Math.floor(left % 864e5 / 36e5), mins = Math.max(1, Math.floor(left % 36e5 / 6e4));
+  $("lbWhen").textContent = left <= 0 ? "neue Woche" : "diese Woche · noch " + (days ? `${days} ${days === 1 ? "Tag" : "Tage"} ${hrs} Std.` : hrs ? `${hrs} Std. ${mins} Min.` : `${mins} Min.`);
+  const row = r => `<li class="${r.me ? "me" : ""}"><span class="rk r${r.rank}">${r.rank}</span><span class="pp">${lbAvatar(r.avatar)}</span><span class="nm">${esc(r.nickname)}${r.me ? " <small>(du)</small>" : ""}</span><span class="x">${r.xp} XP</span></li>`;
+  let h = LB.top.length ? `<ul class="plain lblist">${LB.top.map(row).join("")}` : `<p class="muted" style="margin:0">Diese Woche hat noch niemand XP gesammelt. Hol dir Platz 1!</p>`;
+  if (LB.top.length){
+    if (LB.me && !LB.top.some(r => r.me)) h += `<li class="gap">…</li>` + row({rank:LB.me.rank, xp:LB.me.xp, nickname:nick(), avatar:{pet:S.pet, outfit:S.pet && S.outfits ? S.outfits[S.pet] : {}}, me:true});
+    h += `</ul>`;
+    if (!LB.me) h += `<p class="muted" style="margin:10px 0 0">Spiel eine Runde, dann stehst du auch auf der Liste!</p>`;
+  }
+  el.innerHTML = h + `<p class="lbfoot">Eure Klasse zusammen: <b>${LB.class_xp} XP</b> · ${LB.players} ${LB.players === 1 ? "Kind" : "Kinder"} dabei</p>`;
+}
+// Nach einer Runde: buchen, Rangliste neu holen und die Platz-Änderung zeigen
+async function rankAfterRound(xp, words){
+  const before = LB && LB.me ? LB.me.rank : null;
+  jset(XPQ_KEY, (jget(XPQ_KEY) || []).concat([{xp, words}]).slice(-40));
+  const lb = await loadLB(); if (!lb || !lb.me || view !== "result" || tab !== "ueben") return;
+  const now = lb.me.rank, up = before === null || now < before;
+  const msg = before === null ? `Du stehst jetzt auf Platz ${now} der Rangliste!` : now < before ? `Du bist auf Platz ${now} geklettert!` : `Du bist auf Platz ${now} der Rangliste.`;
+  $("rBanners").insertAdjacentHTML("beforeend", `<div class="banner" style="background:var(--grape);color:#fff">${msg}</div>`);
+  if (up) fx("coin");
+}
+
 /* ---------- Claude (Fotos + Umschreibungen) ---------- */
 let samplePromise = null;
 function getSample(){
@@ -479,6 +529,7 @@ function donut(parts){
 
 /* ---------- Dashboard ---------- */
 function renderDash(){
+  renderLB(); if (Date.now() - lbAt > 60000) loadLB();
   const [t, s] = noahMessage();
   $("bubble").innerHTML = `<b>${esc(t)}</b>${esc(s)}`;
   $("heroPet").innerHTML = petBox(S.pet ? avatarSVG(S.pet) : mascotSvg(), "small");
@@ -804,6 +855,8 @@ function finish(){
   if (res.length && S.pet){ const c = careTick(); snacks = Math.min(SNACK_MAX - c.snacks, (res.length >= 5 ? 2 : 1) + (max && pts / max >= .8 ? 1 : 0)); c.snacks += Math.max(0, snacks); }
   shieldNote = "";
   save();
+  // Für die Rangliste zählen die XP ohne Verdopplung durch das Doppel-XP-Power-up
+  if (res.length && !ADMIN) rankAfterRound(Q.double ? Math.round(Q.xp / 2) : Q.xp, res.length);
   R = {practice: res.filter(r => r.pts < 2).map(r => wordById(r.id)).filter(Boolean), dir:Q.dir, level:Q.level, set:Q.set};
   $("rPts").textContent = "+" + Q.xp; $("rMax").textContent = `${pts} von ${max} Punkten`;
   $("rT2").textContent = t(2); $("rT1").textContent = t(1); $("rT0").textContent = t(0);
