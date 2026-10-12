@@ -24,7 +24,7 @@
     </div>
     <button class="coins" id="coinBtn" aria-label="Kristalle, zum Shop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l7 6-7 14-7-14z" fill="var(--crystal)"/><path d="M5 8h14l-7 14z" fill="#0d8db0" opacity=".35"/><path d="M12 2l3 6H9z" fill="#fff" opacity=".55"/></svg><span id="coinNum">0</span></button>
   </div>
-  <div class="adminbar" id="adminBar" hidden><span>Admin-Modus: Nichts wird gespeichert</span><button id="adminOff">Beenden</button></div>
+  <div class="adminbar" id="adminBar" hidden><span>Test-Modus: Nichts wird gespeichert</span><button id="adminOff">Beenden</button></div>
 </header>
 
 <!-- DASHBOARD -->
@@ -209,7 +209,7 @@
     <div class="thumbs" id="nThumbs"></div>
     <div class="row" style="margin-top:12px"><button class="btn sky" id="nRead" disabled>Wörter auslesen</button><span class="muted" id="nReadMsg"></span></div>
   </div>
-  <p class="muted" id="photoOff" hidden>Fotos auslesen gibt es in dieser Version noch nicht. Du kannst die Wörter unten von Hand eintragen.</p>
+  <p class="muted" id="photoOff" hidden>Fotos auslesen geht nur auf einem Gerät mit KI-Schlüssel (Admin-Bereich). Du kannst die Wörter unten von Hand eintragen.</p>
 
   <div id="nReview" hidden>
     <div class="label">Gefundene Wörter prüfen</div>
@@ -260,6 +260,7 @@
     <p class="joinerr" id="joinErr" hidden role="alert"></p>
     <button class="btn wide" id="joinBtn" type="submit">Los geht’s</button>
     <button class="link" id="joinSwitch" type="button">Ich habe schon einen Geräte-Code</button>
+    <button class="link" id="joinAdmin" type="button">Admin-Bereich für Eltern und Lehrkräfte</button>
   </form>
   <div class="joincard" id="joinDone" hidden>
     <div class="joinpet"><img src="assets/fox.webp" alt=""></div>
@@ -329,14 +330,54 @@
       <div class="devcode" id="devCode"></div>
       <small class="muted" id="whoRow"></small>
     </div>
-    <div class="set" style="display:block">
+    <div class="set">
+      <div class="si" style="background:var(--ink)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+      <div class="st"><b>Admin-Bereich</b><small>Für Eltern und Lehrkräfte: Klassen, Listen und Test-Modus</small></div>
+      <button class="btn soft small" id="adminOpen" type="button">Öffnen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN-BEREICH -->
+<div class="scrim" id="adminSheet" hidden>
+  <div class="sheet adminsheet" role="dialog" aria-modal="true" aria-labelledby="admTitle">
+    <h2 id="admTitle">Admin-Bereich <button class="close" id="admClose" aria-label="Schließen">✕</button></h2>
+    <form id="admLogin" class="admform" autocomplete="off">
+      <p class="muted" style="margin:0">Für Eltern und Lehrkräfte. Kinder brauchen diesen Bereich nicht.</p>
+      <label for="admName">Name</label>
+      <input type="text" id="admName" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="username">
+      <label for="admPw">Passwort</label>
+      <input type="password" id="admPw" autocomplete="current-password">
+      <p class="joinerr" id="admErr" hidden role="alert"></p>
+      <button class="btn wide" type="submit" id="admLoginBtn">Anmelden</button>
+    </form>
+    <div id="admMain" hidden>
+      <p class="muted" id="admWho" style="margin:0 0 4px"></p>
+      <div class="label">Klassen</div>
+      <div id="admClasses"></div>
+      <form class="row" id="admNewClass" style="margin-top:12px">
+        <input type="text" id="admClassName" class="grow" maxlength="40" placeholder="Neue Klasse, z. B. 5b" aria-label="Name der neuen Klasse">
+        <button class="btn small" type="submit">Anlegen</button>
+      </form>
+
+      <div class="label">KI-Schlüssel für Fotos</div>
+      <div class="card admform">
+        <p class="muted" style="margin:0">Mit einem Anthropic-API-Schlüssel liest Claude Vokabeln von Fotos ab und schreibt die Umschreibungen. Die Kosten laufen über das Anthropic-Konto des Schlüssels.</p>
+        <div class="row"><input type="password" id="kiInput" class="grow" placeholder="sk-ant-…" aria-label="Anthropic-API-Schlüssel" autocomplete="off"><button class="btn small" id="kiSave" type="button">Speichern</button></div>
+        <p class="muted" id="kiState" style="margin:0"></p>
+        <button class="btn soft small" id="kiDel" type="button" hidden style="justify-self:start">Schlüssel entfernen</button>
+      </div>
+
+      <div class="label">Test-Modus</div>
+      <div class="card" id="testBox">
+        <div class="set" style="display:block;padding:0;border:0">
       <div style="display:flex;align-items:center;gap:14px">
         <div class="si" style="background:var(--ink)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
-        <div class="st"><b>Admin-Modus</b><small>Alles ansehen und ausprobieren, ohne dass XP, Kristalle, Streak oder Fortschritt gespeichert werden</small></div>
-        <button class="switch" role="switch" id="swAdmin" aria-label="Admin-Modus"></button>
+        <div class="st"><b>Test-Modus</b><small>Alles ansehen und ausprobieren, ohne dass XP, Kristalle, Streak oder Fortschritt gespeichert werden. Zum Einschalten den Test-Code eingeben.</small></div>
+        <button class="switch" role="switch" id="swAdmin" aria-label="Test-Modus"></button>
       </div>
       <form id="adminForm" class="row" style="margin-top:12px" hidden autocomplete="off">
-        <input type="text" id="adminCode" inputmode="numeric" placeholder="Code eingeben" aria-label="Admin-Code" class="grow" style="-webkit-text-security:disc">
+        <input type="text" id="adminCode" inputmode="numeric" placeholder="Code eingeben" aria-label="Test-Code" class="grow" style="-webkit-text-security:disc">
         <button class="btn small" type="submit">Freischalten</button>
         <p class="muted" id="adminErr" style="margin:0;width:100%;color:var(--coral);font-weight:800" hidden>Falscher Code. Versuch es nochmal.</p>
       </form>
@@ -352,6 +393,31 @@
         </div>
         <p class="muted" style="margin:0;width:100%;font-size:.8rem">Nur zum Testen. Beim Ausschalten ist alles wieder wie vorher.</p>
       </div>
+    </div>
+      </div>
+      <p class="muted" id="testOff" hidden>Den Test-Modus gibt es nur auf einem Gerät, das auch als Kind in einer Klasse angemeldet ist.</p>
+
+      <div class="label">Passwort ändern</div>
+      <form class="card admform" id="admPwForm" autocomplete="off">
+        <input type="password" id="admPwOld" placeholder="Altes Passwort" aria-label="Altes Passwort" autocomplete="current-password">
+        <input type="password" id="admPwNew" placeholder="Neues Passwort (mindestens 8 Zeichen)" aria-label="Neues Passwort" autocomplete="new-password">
+        <div class="row"><button class="btn small" type="submit">Ändern</button><span class="muted" id="admPwMsg"></span></div>
+      </form>
+      <button class="btn soft wide" id="admLogout" type="button" style="margin-top:20px">Abmelden</button>
+    </div>
+    <div id="admEditor" class="admform" hidden>
+      <button class="back" id="edBack" type="button" style="margin:0;justify-self:start">← Zurück</button>
+      <h3 id="edTitle" style="margin:0">Neue Liste</h3>
+      <label for="edName">Name der Liste</label>
+      <input type="text" id="edName" maxlength="60" placeholder="z. B. Unit 1 – Station 2">
+      <label for="edWords">Wörter, eins pro Zeile: englisch = deutsch</label>
+      <textarea id="edWords" rows="12" spellcheck="false" placeholder="dog = Hund&#10;to sit down = sich hinsetzen; sich setzen"></textarea>
+      <p class="muted" id="edCount" style="margin:0"></p>
+      <div id="edPhotoBox" class="row"><label class="btn sky small" for="edPhoto">Aus Foto lesen</label><input type="file" id="edPhoto" accept="image/*" multiple hidden><span class="muted" id="edPhotoMsg"></span></div>
+      <label class="chk" id="edHintsRow"><input type="checkbox" id="edHints" checked> Umschreibungen für „Schwer“ von Claude schreiben lassen</label>
+      <p class="muted" id="edNoKi" style="margin:0">Ohne KI-Schlüssel gibt es kein Foto-Auslesen und keine Umschreibungen. Im Modus „Schwer“ fehlt dann der Hinweistext.</p>
+      <p class="joinerr" id="edErr" hidden role="alert"></p>
+      <button class="btn wide" id="edSave" type="button">Speichern</button>
     </div>
   </div>
 </div>

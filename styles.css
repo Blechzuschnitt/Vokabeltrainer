@@ -608,3 +608,30 @@ body.inquiz .lvlrow{margin-top:0}
 .lbcard .t b{display:block;font-family:var(--display);font-weight:400;font-size:1.3rem;line-height:1.2}
 .lbcard .t small{display:block;font-weight:700;font-size:.85rem;color:var(--muted-ink)}
 .lbcard .chev{width:22px;height:22px;color:var(--muted-ink)}
+
+/* ================= Klassen-App: Admin-Bereich ================= */
+#adminSheet{z-index:60;align-items:flex-start;padding:calc(12px + env(safe-area-inset-top,0px)) 12px 12px}
+.adminsheet{border-radius:28px;max-height:100%;padding:16px 16px 24px}
+.admform{display:grid;gap:8px}
+.admform label{font-weight:800;margin-top:6px}
+.adminsheet input[type=password],.adminsheet textarea{width:100%;font:600 1rem var(--body);color:var(--ink);background:var(--surface);border:2px solid color-mix(in srgb,var(--sky) 45%,var(--surface));border-radius:14px;padding:12px 14px}
+.adminsheet textarea{font:600 .95rem/1.5 var(--body);resize:vertical;min-height:180px}
+.adminsheet input[type=password]:focus,.adminsheet textarea:focus{border-color:var(--sky);outline:none}
+.admclass{margin-top:12px}
+.admhead{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.admhead h3{margin:0;font-size:1.4rem;overflow-wrap:anywhere}
+.admhead small{display:block;font-size:.72rem;font-weight:800;color:var(--muted-ink);text-align:right}
+.admcode{display:block;font-family:var(--display);font-weight:400;font-size:1.4rem;letter-spacing:.14em;user-select:all;-webkit-user-select:all}
+.admsub{display:flex;justify-content:space-between;font-family:var(--display);font-size:1.02rem;margin:14px 0 4px}
+.admsub span{font-family:var(--body);font-weight:800;color:var(--muted-ink)}
+.admlist li{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 0;border-bottom:2px solid var(--surface-2)}
+.admlist li:last-child{border-bottom:0}
+.admlist .nm{flex:1 1 90px;min-width:0;font-weight:800;overflow-wrap:anywhere}
+.admlist .nm small{display:block;font-weight:700;font-size:.8rem;color:var(--muted-ink)}
+.admlist li.ren input{flex:1 1 140px;min-width:0;padding:8px 10px}
+.admlist .iconbtn{min-height:36px}
+.iconbtn.warn{background:var(--coral);color:#fff}
+.admclass>.muted{margin:0 0 6px}
+.admclass>.btn{margin-top:10px}
+.chk{display:flex;gap:10px;align-items:center;font-weight:700!important}
+.chk input{width:22px;height:22px;accent-color:var(--mint);flex:none}

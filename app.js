@@ -140,8 +140,30 @@ async function pull(){
     if (remote && Array.isArray(remote.words) && (first || (remote.rev || 0) > (S.rev || 0))){
       S = remote; normalizeState(); lsSet(S); jset(DIRTY_KEY, false); applyTheme(); renderAll();
     } else if (!remote || (S.rev || 0) > (remote.rev || 0)){ if (!S.rev) S.rev = Date.now(); lsSet(S); jset(DIRTY_KEY, true); await push(); }
-    jset(SYNCED_KEY, true); setStorage("db"); loadLB();
+    jset(SYNCED_KEY, true); setStorage("db"); await syncClass(); loadLB();
   }catch(e){ setStorage("local"); }
+}
+// Spitzname und Klassen-Listen vom Server holen. Wurde das Kind entfernt, geht es zurück zur Anmeldung.
+async function syncClass(){
+  const me = await sb("players?select=nickname&id=eq." + PROFILE.player_id);
+  if (!me.length){
+    [PRO_KEY, SYNCED_KEY, DIRTY_KEY, LB_KEY, AV_KEY, XPQ_KEY].forEach(k => { try{ localStorage.removeItem(k); }catch(e){} });
+    PROFILE = null; LB = null; $("join").hidden = false; $("joinErr").textContent = "Du bist nicht mehr in der Klasse angemeldet. Melde dich neu an."; $("joinErr").hidden = false; return;
+  }
+  if (me[0].nickname !== PROFILE.nickname){ PROFILE.nickname = me[0].nickname; jset(PRO_KEY, PROFILE); renderAll(); }
+  const lists = await sb("word_lists?select=id,name,words,created_at&order=created_at.asc"), byId = new Map(lists.map(l => [l.id, l]));
+  let changed = false, fresh = "";
+  const keep = S.words.filter(w => !w.src || (byId.has(w.src) && byId.get(w.src).words.some(x => x.k === w.k)));
+  if (keep.length !== S.words.length){ S.words = keep; changed = true; }
+  for (const l of lists){
+    const had = S.words.some(w => w.src === l.id);
+    for (const x of l.words){
+      const w = S.words.find(w => w.src === l.id && w.k === x.k);
+      if (!w){ S.words.push({id:uid(), en:x.en, de:x.de, hint:x.hint || "", set:l.name, right:0, wrong:0, last:null, added:todayKey(new Date(l.created_at)), src:l.id, k:x.k}); changed = true; if (!had) fresh = l.name; }
+      else if (w.en !== x.en || w.de !== x.de || w.set !== l.name || (x.hint && w.hint !== x.hint)){ Object.assign(w, {en:x.en, de:x.de, set:l.name, hint:x.hint || w.hint}); changed = true; }
+    }
+  }
+  if (changed){ save(); renderAll(); if (fresh) toast(`Neue Liste von deiner Klasse: ${fresh}`); }
 }
 function save(){
   if (!ADMIN){ persist(S); return; }
@@ -259,8 +281,8 @@ function renderAdmin(){
 }
 function setAdmin(on){
   if (on === ADMIN) return;
-  if (on){ BASE = clone(S); ADMIN = true; toast("Admin-Modus an"); }
-  else { clearTimeout(saveTimer); S = clone(BASE); BASE = null; ADMIN = false; Q = null; R = null; W = null; view = "home"; normalizeState(); applyTheme(); toast("Admin-Modus aus. Alles wie vorher."); }
+  if (on){ BASE = clone(S); ADMIN = true; toast("Test-Modus an"); }
+  else { clearTimeout(saveTimer); S = clone(BASE); BASE = null; ADMIN = false; Q = null; R = null; W = null; view = "home"; normalizeState(); applyTheme(); toast("Test-Modus aus. Alles wie vorher."); }
   renderAdmin(); renderAll();
 }
 $("swAdmin").onclick = () => {
@@ -379,6 +401,143 @@ window.addEventListener("online", pull);
 document.addEventListener("visibilitychange", () => { document.hidden ? push() : pull(); });
 setInterval(push, 60000);
 
+/* ---------- Admin-Bereich: Klassen, Kinder, Listen, KI-Schlüssel, Test-Modus ---------- */
+let AO = null, edit = null, admRename = null, admConfirm = null;
+const rpc = (name, body) => sb("rpc/" + name, {method:"POST", body:body || {}});
+async function openAdmin(){
+  $("settings").hidden = true; $("adminSheet").hidden = false; $("admErr").hidden = true; edit = null;
+  renderAdminSheet(); await loadAdmin();
+}
+async function loadAdmin(){
+  try{ AO = SESSION ? await rpc("admin_overview") : null; }catch(e){ AO = null; }
+  renderAdminSheet();
+}
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+function renderAdminSheet(){
+  $("admLogin").hidden = !!AO; $("admMain").hidden = !AO || !!edit; $("admEditor").hidden = !AO || !edit;
+  if (!AO) return;
+  $("admWho").textContent = `Angemeldet als ${AO.admin}`;
+  const li = (name, sub, btns) => `<li><span class="nm">${name}<small>${sub}</small></span>${btns}</li>`;
+  const ask = (act, id, label) => `<button class="iconbtn ${admConfirm === act + id ? "warn" : ""}" data-act="${act}" data-id="${id}">${admConfirm === act + id ? "Wirklich?" : label}</button>`;
+  $("admClasses").innerHTML = AO.classes.map(c => `<div class="card admclass" data-class="${c.id}">
+    <div class="admhead"><h3>${esc(c.name)}</h3><div><small>Klassen-Code</small><b class="admcode">${esc(c.join_code)}</b></div></div>
+    <div class="admsub">Kinder <span>${c.players.length}</span></div>
+    ${c.players.length ? `<ul class="plain admlist">${c.players.map(p => admRename === p.id
+      ? `<li class="ren"><input type="text" maxlength="16" value="${esc(p.nickname)}" aria-label="Neuer Spitzname" data-ren="${p.id}"><button class="iconbtn" data-act="renok" data-id="${p.id}">OK</button><button class="iconbtn" data-act="rencancel">Abbrechen</button></li>`
+      : li(esc(p.nickname), `${p.xp_week} XP diese Woche · ${plural(p.devices, "Gerät", "Geräte")}`, `<button class="iconbtn" data-act="rename" data-id="${p.id}">Umbenennen</button>${ask("remove", p.id, "Entfernen")}`)).join("")}</ul>`
+      : `<p class="muted">Noch keine Kinder. Gib den Klassen-Code weiter.</p>`}
+    <div class="admsub">Vokabellisten <span>${c.lists.length}</span></div>
+    ${c.lists.length ? `<ul class="plain admlist">${c.lists.map(l => li(esc(l.name), plural(l.words.length, "Wort", "Wörter"), `<button class="iconbtn" data-act="editlist" data-id="${l.id}">Bearbeiten</button>${ask("dellist", l.id, "Löschen")}`)).join("")}</ul>` : `<p class="muted">Noch keine Klassen-Liste.</p>`}
+    <button class="btn sky small" data-act="newlist">+ Neue Liste</button>
+  </div>`).join("") || `<p class="muted">Noch keine Klasse.</p>`;
+  const k = kiKey();
+  $("kiState").textContent = k ? `Schlüssel gespeichert (endet auf …${k.slice(-4)}). Er liegt nur auf diesem Gerät.` : "Kein Schlüssel gespeichert. Ohne Schlüssel trägst du Listen von Hand ein.";
+  $("kiDel").hidden = !k;
+  $("testBox").hidden = !PROFILE; $("testOff").hidden = !!PROFILE;
+  renderAdmin();
+  if (edit){
+    $("edTitle").textContent = edit.id ? "Liste bearbeiten" : "Neue Liste";
+    $("edPhotoBox").hidden = !k; $("edHintsRow").hidden = !k; $("edNoKi").hidden = !!k;
+  }
+}
+function admFail(el, msg){ el.textContent = msg; el.hidden = false; }
+$("admLogin").onsubmit = async e => {
+  e.preventDefault(); const btn = $("admLoginBtn"); btn.disabled = true; $("admErr").hidden = true;
+  try{
+    if (!SESSION) await sbAuth("signup", {data:{}});
+    const r = await rpc("admin_login", {p_name:$("admName").value, p_pw:$("admPw").value});
+    $("admPw").value = "";
+    if (!r.ok) admFail($("admErr"), r.reason === "LOCKED" ? "Zu viele Fehlversuche. Die Anmeldung ist 15 Minuten gesperrt." : "Name oder Passwort stimmt nicht.");
+    else await loadAdmin();
+  }catch(err){ admFail($("admErr"), "Das hat gerade nicht geklappt. Prüfe die Internet-Verbindung."); }
+  btn.disabled = false;
+};
+$("admLogout").onclick = async () => { try{ await rpc("admin_logout"); }catch(e){} AO = null; edit = null; renderAdminSheet(); };
+$("admClose").onclick = () => { $("adminSheet").hidden = true; };
+$("adminOpen").onclick = openAdmin;
+$("joinAdmin").onclick = openAdmin;
+$("admNewClass").onsubmit = async e => {
+  e.preventDefault(); const n = $("admClassName").value.trim(); if (!n) return;
+  try{ const c = await rpc("admin_create_class", {p_name:n}); $("admClassName").value = ""; toast(`Klasse ${c.name} angelegt. Code: ${c.join_code}`); await loadAdmin(); }
+  catch(err){ toast("Die Klasse konnte nicht angelegt werden."); }
+};
+$("admPwForm").onsubmit = async e => {
+  e.preventDefault(); const m = $("admPwMsg");
+  if ($("admPwNew").value.length < 8){ m.textContent = "Das neue Passwort braucht mindestens 8 Zeichen."; return; }
+  try{ const r = await rpc("admin_set_password", {p_old:$("admPwOld").value, p_new:$("admPwNew").value});
+    m.textContent = r.ok ? "Passwort geändert." : "Das alte Passwort stimmt nicht."; if (r.ok){ $("admPwOld").value = ""; $("admPwNew").value = ""; } }
+  catch(err){ m.textContent = "Das hat nicht geklappt."; }
+};
+$("kiSave").onclick = () => { const v = $("kiInput").value.trim(); if (!v) return; try{ localStorage.setItem(KI_KEY, v); }catch(e){} $("kiInput").value = ""; renderAdminSheet(); toast("KI-Schlüssel gespeichert"); };
+$("kiDel").onclick = () => { try{ localStorage.removeItem(KI_KEY); }catch(e){} renderAdminSheet(); toast("KI-Schlüssel entfernt"); };
+$("admClasses").addEventListener("click", async e => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const act = b.dataset.act, id = b.dataset.id, cls = AO.classes.find(c => c.id === b.closest("[data-class]").dataset.class);
+  const twice = () => { if (admConfirm === act + id) { admConfirm = null; return true; } admConfirm = act + id; renderAdminSheet(); return false; };
+  try{
+    if (act === "rename"){ admRename = id; admConfirm = null; renderAdminSheet(); const i = document.querySelector(`[data-ren="${id}"]`); if (i){ i.focus(); i.select(); } return; }
+    if (act === "rencancel"){ admRename = null; renderAdminSheet(); return; }
+    if (act === "renok"){ await rpc("admin_rename_player", {p_player:id, p_nickname:document.querySelector(`[data-ren="${id}"]`).value}); admRename = null; toast("Spitzname geändert"); }
+    if (act === "remove"){ if (!twice()) return; await rpc("admin_remove_player", {p_player:id}); toast("Kind entfernt"); }
+    if (act === "dellist"){ if (!twice()) return; await rpc("admin_delete_list", {p_id:id}); toast("Liste gelöscht"); }
+    if (act === "newlist" || act === "editlist"){
+      const l = act === "editlist" ? cls.lists.find(x => x.id === id) : null;
+      edit = {id:l ? l.id : null, classId:cls.id, old:l ? l.words : []};
+      $("edName").value = l ? l.name : ""; $("edWords").value = l ? l.words.map(w => `${w.en} = ${w.de}`).join("\n") : "";
+      $("edErr").hidden = true; $("edPhotoMsg").textContent = ""; edCount(); renderAdminSheet(); $("adminSheet").querySelector(".sheet").scrollTop = 0; return;
+    }
+    await loadAdmin(); if (PROFILE) pull();
+  }catch(err){ toast(err.message === "NAME_TAKEN" ? "Diesen Spitznamen gibt es in der Klasse schon." : err.message === "NAME_LEN" ? "Der Spitzname braucht 2 bis 16 Zeichen." : "Das hat nicht geklappt."); }
+});
+// Editor: eine Zeile pro Wort, "englisch = deutsch"
+function parseLines(txt){
+  const out = [], bad = [];
+  txt.split("\n").forEach((raw, n) => { const l = raw.trim(); if (!l) return;
+    let i = l.lastIndexOf(" = "), w = 3; if (i < 0){ i = l.indexOf("="); w = 1; }
+    const en = i < 0 ? "" : l.slice(0, i).trim(), de = i < 0 ? "" : l.slice(i + w).trim();
+    en && de ? out.push({en, de}) : bad.push(n + 1); });
+  return {out, bad};
+}
+function edCount(){ const {out, bad} = parseLines($("edWords").value); $("edCount").textContent = plural(out.length, "Wort", "Wörter") + (bad.length ? ` · Zeile ${bad.slice(0, 5).join(", ")} hat kein „=“` : ""); }
+$("edWords").addEventListener("input", edCount);
+$("edBack").onclick = () => { edit = null; renderAdminSheet(); };
+$("edPhoto").onchange = async e => {
+  const files = [...e.target.files].slice(0, 4), msg = $("edPhotoMsg"); e.target.value = ""; if (!files.length) return;
+  msg.textContent = "Claude liest die Wörter … (etwa eine halbe Minute)";
+  try{
+    const imgs = []; for (const f of files) imgs.push(await resize(f));
+    const data = await kiJson(PHOTO_PROMPT, imgs);
+    const ws = ((data && data.words) || []).filter(w => w && w.en && w.de).map(w => ({en:String(w.en).trim(), de:String(w.de).trim(), hint:String(w.hint || "").trim()}));
+    if (!ws.length){ msg.textContent = "Keine Vokabeln erkannt. Versuch ein schärferes, gerades Foto."; return; }
+    edit.photo = (edit.photo || []).concat(ws);
+    $("edWords").value = ($("edWords").value.trim() ? $("edWords").value.trim() + "\n" : "") + ws.map(w => `${w.en} = ${w.de}`).join("\n");
+    edCount(); msg.textContent = `${plural(ws.length, "Wort", "Wörter")} eingefügt. Bitte kurz gegenlesen.`;
+  }catch(err){ msg.textContent = sampleErr(err); }
+};
+$("edSave").onclick = async () => {
+  const name = $("edName").value.trim(), {out, bad} = parseLines($("edWords").value), btn = $("edSave");
+  if (!name) return admFail($("edErr"), "Gib der Liste einen Namen.");
+  if (bad.length) return admFail($("edErr"), `Zeile ${bad.slice(0, 5).join(", ")} hat kein „=“. Schreibe: englisch = deutsch`);
+  if (!out.length) return admFail($("edErr"), "Die Liste ist leer.");
+  if (out.length > 300) return admFail($("edErr"), "Eine Liste darf höchstens 300 Wörter haben.");
+  $("edErr").hidden = true; btn.disabled = true; btn.textContent = "Speichert …";
+  // Kennung und Umschreibung eines Worts behalten, wenn es schon in der Liste stand (oder gerade vom Foto kam)
+  const words = out.map(p => { const o = edit.old.find(x => x.en === p.en), ph = (edit.photo || []).find(x => x.en === p.en); return {k:o ? o.k : "", en:p.en, de:p.de, hint:(o && o.hint) || (ph && ph.hint) || ""}; });
+  try{
+    const missing = words.filter(w => !w.hint);
+    if (kiKey() && $("edHints").checked && missing.length){
+      btn.textContent = "Claude schreibt Umschreibungen …";
+      try{
+        const data = await kiJson("Schreibe für jede Vokabel " + HINT_RULE + "\nAntworte nur mit JSON in der Form {\"hints\":[{\"id\":\"...\",\"hint\":\"...\"}]}.\n\nVokabeln:\n" + missing.map((w, i) => `${i}: ${w.en} = ${w.de}`).join("\n"));
+        for (const h of (data && data.hints) || []){ const w = missing[Number(h.id)]; if (w && h.hint) w.hint = String(h.hint).trim(); }
+      }catch(err){ toast("Umschreibungen fehlen noch: " + sampleErr(err)); }
+    }
+    await rpc("admin_save_list", {p_id:edit.id, p_class:edit.classId, p_name:name, p_words:words});
+    edit = null; toast(`Liste „${name}“ gespeichert`); await loadAdmin(); if (PROFILE) pull();
+  }catch(err){ admFail($("edErr"), "Die Liste konnte nicht gespeichert werden."); }
+  btn.disabled = false; btn.textContent = "Speichern";
+};
+
 /* ---------- Rangliste der Klasse (diese Woche) ---------- */
 let LB = jget(LB_KEY), lbAt = 0;
 // Gespielte Runden warten in einer Liste, bis sie online gebucht sind (auch nach einer Runde ohne Internet)
@@ -440,18 +599,37 @@ async function rankAfterRound(xp, words){
   if (up) fx("coin");
 }
 
-/* ---------- Claude (Fotos + Umschreibungen) ---------- */
-let samplePromise = null;
-function getSample(){
-  if (!samplePromise) samplePromise = (window.claude && window.claude.use) ? window.claude.use("sample").catch(() => null) : Promise.resolve(null);
-  return samplePromise;
+/* ---------- Claude (Fotos + Umschreibungen) über den KI-Schlüssel aus dem Admin-Bereich ---------- */
+// Der Schlüssel liegt nur im Browser dieses Geräts und geht direkt an die Anthropic-API, nie an Supabase.
+const KI_KEY = "vokabel-klasse-ki", KI_COUNT = "vokabel-klasse-ki-zahl", KI_MODEL = "claude-opus-5-5", KI_PER_DAY = 30;
+const kiKey = () => { try{ return localStorage.getItem(KI_KEY) || ""; }catch(e){ return ""; } };
+const blobB64 = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1]); r.onerror = rej; r.readAsDataURL(b); });
+async function kiJson(prompt, images){
+  const fail = (code, status) => Object.assign(new Error(code), {code, status});
+  const today = todayKey(), cnt = jget(KI_COUNT) || {};
+  if (cnt.date === today && cnt.n >= KI_PER_DAY) throw fail("day_limit");
+  const content = [];
+  for (const b of (images || []).slice(0, 4)) content.push({type:"image", source:{type:"base64", media_type:"image/jpeg", data:await blobB64(b)}});
+  content.push({type:"text", text:prompt});
+  jset(KI_COUNT, {date:today, n:(cnt.date === today ? cnt.n : 0) + 1});
+  const r = await fetch("https://api.anthropic.com/v1/messages", {method:"POST",
+    headers:{"content-type":"application/json", "x-api-key":kiKey(), "anthropic-version":"2023-06-01", "anthropic-dangerous-direct-browser-access":"true"},
+    body:JSON.stringify({model:KI_MODEL, max_tokens:16000, messages:[{role:"user", content}]})});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw fail(r.status === 401 || r.status === 403 ? "key" : r.status === 429 ? "rate_limited" : r.status === 413 ? "image_rejected" : "api", r.status);
+  if (j.stop_reason === "refusal") throw fail("refusal");
+  const txt = (j.content || []).filter(b => b.type === "text").map(b => b.text).join(""), a = txt.indexOf("{"), z = txt.lastIndexOf("}");
+  try{ return JSON.parse(txt.slice(a, z + 1)); }catch(e){ throw fail("invalid_json"); }
 }
+function getSample(){ return Promise.resolve(kiKey() ? {json:(prompt, o) => kiJson(prompt, o && o.images), limits:async () => ({images:true})} : null); }
 function sampleErr(e){
   const c = e && e.code;
-  if (c === "not_granted") return "Claude ist für diese Seite nicht erlaubt.";
+  if (c === "key") return "Der KI-Schlüssel ist ungültig oder gesperrt. Prüfe ihn im Admin-Bereich.";
+  if (c === "day_limit") return `Für heute sind die ${KI_PER_DAY} KI-Anfragen dieses Geräts aufgebraucht.`;
   if (c === "rate_limited") return "Gerade zu viele Anfragen. Warte kurz und versuch es nochmal.";
   if (c === "invalid_json") return "Claude hat keine lesbare Liste geliefert. Versuch ein schärferes Foto.";
-  if (c === "image_rejected" || c === "images_unavailable") return "Dieses Bild kann nicht gelesen werden. Nimm ein JPG oder PNG.";
+  if (c === "image_rejected") return "Dieses Bild kann nicht gelesen werden. Nimm ein kleineres JPG oder PNG.";
+  if (c === "refusal") return "Claude hat diese Anfrage abgelehnt.";
   return "Das hat nicht geklappt. Versuch es nochmal.";
 }
 
@@ -1706,6 +1884,12 @@ $("hintGenBtn").onclick = async () => {
   $("hintGenBtn").disabled = false;
 };
 const HINT_RULE = "eine kurze, kindgerechte Umschreibung auf Deutsch für ein Kind der 5. Klasse (höchstens 15 Wörter). Sie darf weder das englische Wort noch eines der deutschen Wörter oder deren Wortstamm enthalten. Bei kleinen Wörtern wie Präpositionen ist ein Lückensatz mit ___ erlaubt.";
+const PHOTO_PROMPT = "Die Bilder zeigen eine Vokabelliste aus einem Englischbuch (Klasse 5, Englisch–Deutsch). Lies ALLE Vokabeln in der Reihenfolge ab.\n" +
+  "- en: das englische Wort oder die Wendung genau wie im Buch (mit to bei Verben, Satzzeichen bei Sätzen, Kurzformen wie \"it's (= it is)\").\n" +
+  "- de: alle deutschen Bedeutungen genau wie im Buch, mehrere mit \"; \" getrennt.\n" +
+  "- hint: " + HINT_RULE + "\n" +
+  "Lass Lautschrift, Beispielsätze und Seitenzahlen weg.\n" +
+  "Antworte nur mit JSON: {\"words\":[{\"en\":\"...\",\"de\":\"...\",\"hint\":\"...\"}]}";
 async function genHints(sample, list){
   if (!list.length) return;
   const data = await sample.json(
@@ -1756,14 +1940,7 @@ $("nRead").onclick = async () => {
   const sample = await getSample(); if (!sample || !photos.length) return;
   $("nRead").disabled = true; $("nReadMsg").textContent = "Claude liest die Wörter … (etwa eine halbe Minute)";
   try{
-    const data = await sample.json(
-      "Die Bilder zeigen eine Vokabelliste aus einem Englischbuch (Klasse 5, Englisch–Deutsch). Lies ALLE Vokabeln in der Reihenfolge ab.\n" +
-      "- en: das englische Wort oder die Wendung genau wie im Buch (mit to bei Verben, Satzzeichen bei Sätzen, Kurzformen wie \"it's (= it is)\").\n" +
-      "- de: alle deutschen Bedeutungen genau wie im Buch, mehrere mit \"; \" getrennt.\n" +
-      "- hint: " + HINT_RULE + "\n" +
-      "Lass Lautschrift, Beispielsätze und Seitenzahlen weg.\n" +
-      "Antworte nur mit JSON: {\"words\":[{\"en\":\"...\",\"de\":\"...\",\"hint\":\"...\"}]}",
-      {images: photos, modelTier:"default"});
+    const data = await sample.json(PHOTO_PROMPT, {images: photos, modelTier:"default"});
     found = ((data && data.words) || []).filter(w => w && w.en && w.de).map(w => ({en:String(w.en).trim(), de:String(w.de).trim(), hint:String(w.hint||"").trim()}));
     if (!found.length) $("nReadMsg").textContent = "Keine Vokabeln erkannt. Versuch ein schärferes, gerades Foto.";
     else { $("nReadMsg").textContent = `${found.length} Wörter gefunden`; renderReview(); }
