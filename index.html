@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Vokabeltrainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="topin">
+    <h1><em>Mein</em> <span class="w2"><span style="animation-delay:0ms">V</span><span style="animation-delay:35ms">o</span><span style="animation-delay:70ms">k</span><span style="animation-delay:105ms">a</span><span style="animation-delay:140ms">b</span><span style="animation-delay:175ms">e</span><span style="animation-delay:210ms">l</span><span style="animation-delay:245ms">t</span><span style="animation-delay:280ms">r</span><span style="animation-delay:315ms">a</span><span style="animation-delay:350ms">i</span><span style="animation-delay:385ms">n</span><span style="animation-delay:420ms">e</span><span style="animation-delay:455ms">r</span></span></h1>
+    <button class="gear" id="gearBtn" aria-label="Einstellungen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  </div>
+  <div class="lvlrow">
+    <div class="lvbadge" id="lvBadge"><div><small>Level</small><span id="lvlNum">1</span></div></div>
+    <div class="xpwrap">
+      <div class="xpbar"><i id="xpBar" style="width:0"></i></div>
+      <div class="xpline"><span><b id="xpNow">0</b> XP <span id="xpNext"></span></span><span class="rankchip" id="rank">Anfänger</span></div>
+      <button class="rewbtn" id="rewBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11.5" rx="2"/><path d="M2.5 9h19v-3h-19zM12 6v14.5M12 6c-2-4-6.5-3-5.5-.5S12 6 12 6zm0 0c2-4 6.5-3 5.5-.5S12 6 12 6z"/></svg>Belohnungen</button>
+    </div>
+    <button class="coins" id="coinBtn" aria-label="Kristalle, zum Shop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l7 6-7 14-7-14z" fill="var(--crystal)"/><path d="M5 8h14l-7 14z" fill="#0d8db0" opacity=".35"/><path d="M12 2l3 6H9z" fill="#fff" opacity=".55"/></svg><span id="coinNum">0</span></button>
+  </div>
+  <div class="adminbar" id="adminBar" hidden><span>Admin-Modus: Nichts wird gespeichert</span><button id="adminOff">Beenden</button></div>
+</header>
+
+<!-- DASHBOARD -->
+<section id="dash">
+ <div class="dcol">
+  <div class="hero"><div class="pet" id="heroPet"></div><div class="bubble tint-sun" id="bubble"></div></div>
+
+  <div class="streak" id="streak">
+    <svg class="flame" viewBox="0 0 62 76" aria-hidden="true"><path d="M31 2c4 12-6 18-6 28 0 5 4 9 8 9 6 0 9-6 7-13 9 6 14 16 14 25a24 24 0 0 1-48 0c0-15 12-23 17-33 3-5 5-10 8-16z" fill="#fff"/><path d="M31 40c2 6-4 9-4 15 0 4 3 7 6 7 6 0 9-5 9-10 0-7-5-10-11-12z" fill="#ffd34d"/></svg>
+    <div>
+      <div class="num" id="streakNum">0<small>Tage</small></div>
+      <div class="msg" id="streakMsg"></div>
+      <div class="shield" id="shieldInfo" hidden></div>
+    </div>
+    <div class="week" id="week"></div>
+  </div>
+
+  <div class="label">Deine Ringe</div>
+  <div class="rings" id="rings"></div>
+ </div>
+ <div class="dcol">
+
+  <div class="label">Alle Vokabeln <span id="allCount"></span></div>
+  <div class="card donut tint-sky" id="donut"></div>
+
+  <div class="label">Aktuellste Liste</div>
+  <div class="card latest tint-mint" id="latestBox">
+    <div class="row" style="justify-content:space-between"><h3 id="latestName"></h3><span class="muted" id="latestCount"></span></div>
+    <p class="muted" id="latestText" style="margin:6px 0 14px"></p>
+    <button class="btn wide" id="latestBtn">Diese Liste üben</button>
+  </div>
+
+  <div class="label">XP der letzten 7 Tage</div>
+  <div class="card tint-sun"><div class="chart" id="chart"></div></div>
+
+  <div class="label">Letzte Runden</div>
+  <div class="card tint-grape"><ul class="plain hist" id="hist"></ul></div>
+ </div>
+</section>
+
+<!-- ÜBEN: start -->
+<section id="home" hidden>
+  <h2 id="homeTitle">Bereit?</h2>
+  <p class="muted" style="margin:0 0 14px">Eine Runde fragt immer eine ganze Vokabelliste ab.</p>
+  <button class="btn big wide" id="newRound">Start</button>
+  <div class="armed" id="quick"><p id="quickText"></p><button class="btn sun small" id="quickBtn">Wie letztes Mal</button></div>
+  <div class="armed" id="boostBox" hidden><p id="boostText"></p><button class="btn grape small" id="boostBtn">Aktivieren</button></div>
+</section>
+
+<!-- ÜBEN: wizard -->
+<section id="wizard" hidden>
+  <div class="steps" id="steps"></div>
+  <h2 id="wTitle"></h2>
+  <p class="muted" id="wSub" style="margin:0 0 14px"></p>
+  <div class="tiles" id="wTiles"></div>
+  <button class="back" id="wBack">← Zurück</button>
+</section>
+
+<!-- ÜBEN: quiz -->
+<section id="quiz" hidden>
+  <div class="qhead"><span id="qCount">Wort 1 / 10</span><span class="xp" id="qPts">+0 XP</span></div>
+  <div class="qset" id="qSet"></div>
+  <div class="bar" id="qBar"></div>
+  <div class="card tint-sky" id="qCard">
+    <div class="dir" id="qDir"></div>
+    <div class="word" id="qWord"></div>
+    <div class="hinttext" id="qHint" hidden></div>
+    <div class="pattern" id="qPattern" aria-label="Wortlänge"></div>
+    <form id="qForm" autocomplete="off">
+      <div class="answerrow">
+        <input type="text" class="answer" id="qInput" placeholder="Deine Antwort" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" aria-label="Deine Antwort">
+        <button class="btn checkbtn" id="qCheck" type="submit" aria-label="Prüfen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span>Prüfen</span></button>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn sun small" id="qLetter" type="button">Buchstabe</button>
+      </div>
+      <p class="muted" id="qCost" style="margin:8px 0 0;font-size:.82rem;font-weight:700"></p>
+    </form>
+    <div class="feedback" id="qFb" hidden></div>
+    <div class="row" style="margin-top:14px;justify-content:space-between">
+      <div class="row"><button class="link" id="qGive" type="button">Weiß ich nicht</button><button class="btn grape small" id="qJoker" type="button" hidden>Joker</button></div>
+      <button class="btn sky" id="qNext" type="button" hidden>Weiter</button>
+    </div>
+  </div>
+  <div style="margin-top:16px;text-align:center"><button class="btn soft small" id="qQuit" type="button">Runde vorzeitig beenden</button></div>
+  <div class="quitbox" id="quitBox" hidden role="alertdialog" aria-labelledby="quitTitle">
+    <b id="quitTitle">Runde wirklich beenden?</b>
+    <p id="quitText">Alle XP aus dieser Runde gehen verloren.</p>
+    <div class="row"><button class="btn coral grow" id="quitYes" type="button">Beenden</button><button class="btn grow" id="quitNo" type="button">Weiterspielen</button></div>
+  </div>
+</section>
+
+<!-- ÜBEN: result -->
+<section id="result" hidden>
+  <div class="card">
+    <div class="resav" id="rAvatar"></div>
+    <div class="dir">Runde geschafft!</div>
+    <div class="row" style="align-items:baseline;gap:10px;margin-top:8px"><span class="bigxp" id="rPts">+0</span><span class="disp" style="font-size:1.4rem">XP</span><span class="muted" id="rMax"></span></div>
+    <p id="rMsg" style="margin:10px 0 0;font-weight:700"></p>
+    <div id="rBanners"></div>
+    <div class="tally">
+      <div style="background:var(--mint)"><b id="rT2">0</b>sofort richtig</div>
+      <div style="background:var(--sun);color:#1a1f3a"><b id="rT1">0</b>mit Hilfe</div>
+      <div style="background:var(--coral)"><b id="rT0">0</b>nicht gewusst</div>
+    </div>
+    <div id="rPractice"></div>
+    <div class="row" style="margin-top:16px">
+      <button class="btn coral grow" id="rAgainHard">Fehler nochmal üben</button>
+      <button class="btn soft grow" id="rBack">Zum Dashboard</button>
+    </div>
+  </div>
+</section>
+
+<!-- AVATAR -->
+<section id="avatar" hidden>
+ <div class="acol">
+  <div class="stage" id="avStage"></div>
+ </div>
+ <div class="acol">
+  <div id="avStarter" hidden>
+    <div class="label">Wähle deinen ersten Begleiter <span>20 Kristalle</span></div>
+    <div class="petpick" id="avStarterList"></div>
+  </div>
+  <div id="avMain">
+    <div class="label">Dein Begleiter <span>tippen zum Wechseln</span></div>
+    <div class="petpick" id="avPets"></div>
+    <div class="label">Anziehen</div>
+    <div class="slots" id="avSlots" role="tablist"></div>
+    <div class="wgrid" id="avItems"></div>
+  </div>
+ </div>
+</section>
+
+<!-- SHOP -->
+<section id="shop" hidden>
+  <div class="wallet">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l7 6-7 14-7-14z" fill="#fff"/><path d="M5 8h14l-7 14z" fill="#0d8db0" opacity=".45"/><path d="M12 2l3 6H9z" fill="#fff"/></svg>
+    <div><b id="walletNum">0</b><p>Kristalle. Jedes Level-Up bringt dir 10 neue.</p></div>
+  </div>
+  <div class="label">Power-ups <span>einmal benutzbar</span></div>
+  <div class="items" id="powerups"></div>
+  <div class="label">Pets <span>bleiben für immer, eins ist dabei</span></div>
+  <div class="items" id="pets"></div>
+  <div class="label">Für deinen Avatar <span>Kleidung, Skins, Auren</span></div>
+  <div class="slots" id="shopSlots" role="tablist"></div>
+  <div class="wgrid" id="shopWear"></div>
+</section>
+
+<!-- VOKABELN -->
+<section id="liste" hidden>
+  <div class="row" style="justify-content:space-between">
+    <h2 style="margin:0">Meine Vokabeln</h2>
+    <button class="btn sky small" id="toAdd">+ Neue Liste</button>
+  </div>
+  <input type="text" id="lSearch" placeholder="Suchen …" style="margin-top:12px" aria-label="Vokabeln suchen">
+  <div class="legend2 muted"><span><span class="dot g"></span>sicher</span><span><span class="dot y"></span>mit Hilfe</span><span><span class="dot b"></span>üben</span><span><span class="dot"></span>neu</span></div>
+  <div id="lGroups"></div>
+  <div class="row" style="margin-top:16px" id="hintGenRow" hidden>
+    <button class="btn sky small" id="hintGenBtn">Fehlende Umschreibungen erzeugen</button>
+    <span class="muted" id="hintGenMsg"></span>
+  </div>
+</section>
+
+<!-- HINZUFÜGEN -->
+<section id="neu" hidden>
+  <button class="back" id="addBack" style="margin:0 0 6px">← Meine Vokabeln</button>
+  <h2>Neue Vokabelliste</h2>
+  <p class="muted" style="margin:0">Jede hochgeladene Liste ist später ein eigener Abfrageblock.</p>
+  <div class="label">Name der Liste</div>
+  <input type="text" id="nSet" list="setList" placeholder="z. B. Unit 1 – Station 2">
+  <datalist id="setList"></datalist>
+
+  <div class="label">Per Foto</div>
+  <div id="photoBox">
+    <label class="drop" for="nPhoto">
+      <input type="file" id="nPhoto" accept="image/*" multiple>
+      <strong>Foto der Vokabelseite wählen</strong><br><span class="muted">Claude liest die Wörter ab. Du prüfst alles vor dem Speichern.</span>
+    </label>
+    <div class="thumbs" id="nThumbs"></div>
+    <div class="row" style="margin-top:12px"><button class="btn sky" id="nRead" disabled>Wörter auslesen</button><span class="muted" id="nReadMsg"></span></div>
+  </div>
+  <p class="muted" id="photoOff" hidden>Fotos auslesen gibt es in dieser Version noch nicht. Du kannst die Wörter unten von Hand eintragen.</p>
+
+  <div id="nReview" hidden>
+    <div class="label">Gefundene Wörter prüfen</div>
+    <ul class="plain review" id="nReviewList"></ul>
+    <div class="row" style="margin-top:12px"><button class="btn grow" id="nSaveAll">Ausgewählte speichern</button><button class="btn soft" id="nDiscard">Verwerfen</button></div>
+  </div>
+
+  <div class="label">Von Hand</div>
+  <form id="nForm" class="card" style="display:grid;gap:10px">
+    <input type="text" id="nEn" placeholder="Englisch, z. B. to sit down" aria-label="Englisch" autocapitalize="off">
+    <input type="text" id="nDe" placeholder="Deutsch, z. B. sich hinsetzen; sich setzen" aria-label="Deutsch">
+    <input type="text" id="nHint" placeholder="Umschreibung für „Schwer“ (optional)" aria-label="Umschreibung">
+    <p class="muted" style="margin:0">Mehrere Bedeutungen mit ; trennen. Ohne Umschreibung schreibt Claude eine.</p>
+    <button class="btn" type="submit">Speichern</button>
+  </form>
+</section>
+
+<p class="storage" id="storageNote">Lädt …</p>
+</div>
+
+<nav role="tablist"><div class="in">
+  <button role="tab" id="tab-dash" aria-selected="true" data-tab="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>Start</button>
+  <button role="tab" id="tab-ueben" aria-selected="false" data-tab="ueben"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>Üben</button>
+  <button role="tab" id="tab-shop" aria-selected="false" data-tab="shop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 6-7 12-7-12z"/><path d="M5 9h14"/></svg>Shop</button>
+  <button role="tab" id="tab-avatar" aria-selected="false" data-tab="avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg>Avatar</button>
+  <button role="tab" id="tab-liste" aria-selected="false" data-tab="liste"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg>Wörter</button>
+</div></nav>
+<div class="toast" id="toast" hidden></div>
+
+<!-- ANMELDUNG: Spitzname + Klassen-Code -->
+<div class="joinscr" id="join" hidden>
+  <form class="joincard" id="joinForm" autocomplete="off">
+    <div class="joinpet"><img src="assets/fox.webp" alt=""></div>
+    <h2>Willkommen beim Vokabeltrainer!</h2>
+    <p class="muted">Such dir einen Spitznamen aus und tippe den Code deiner Klasse ein.</p>
+    <label for="joinNick">Dein Spitzname</label>
+    <input type="text" id="joinNick" maxlength="16" placeholder="z. B. Blitzfuchs" autocapitalize="words" autocorrect="off" spellcheck="false">
+    <p class="joinhint">Bitte nicht deinen echten Namen. Die anderen in deiner Klasse sehen ihn später in der Rangliste.</p>
+    <label for="joinCode">Klassen-Code</label>
+    <input type="text" id="joinCode" maxlength="6" placeholder="6 Zeichen" autocapitalize="characters" autocorrect="off" spellcheck="false">
+    <p class="joinerr" id="joinErr" hidden role="alert"></p>
+    <button class="btn wide" id="joinBtn" type="submit">Los geht’s</button>
+  </form>
+</div>
+
+<div class="scrim" id="rewards" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rewTitle">
+    <div class="grab"></div>
+    <h2 id="rewTitle">Belohnungen <button class="close" id="rewClose" aria-label="Schließen">✕</button></h2>
+    <div class="label" style="margin-top:6px">So verdienst du XP</div>
+    <ul class="plain rewrules">
+      <li><b>+3</b>Sofort richtig, ohne Hilfe</li>
+      <li><b>+2</b>Mit 1–2 Buchstaben oder nach einem Fehlversuch</li>
+      <li><b>+1</b>Mit 3 oder mehr Buchstaben</li>
+      <li><b>×2</b>Mit Doppel-XP aus dem Shop</li>
+      <li><b>+10</b>Kristalle bei jedem Level-Up</li>
+    </ul>
+    <div class="nextrew" id="rewNext" style="margin-top:18px"></div>
+    <div class="label">Die nächsten Level</div>
+    <ul class="plain rewlist" id="rewList"></ul>
+  </div>
+</div>
+<div class="scrim" id="settings" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+    <div class="grab"></div>
+    <h2 id="setTitle">Einstellungen <button class="close" id="setClose" aria-label="Schließen">✕</button></h2>
+    <div class="set" style="display:block">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="si" style="background:var(--grape)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></div>
+        <div class="st"><b>Darstellung</b><small>Hell, dunkel oder wie das Gerät</small></div>
+      </div>
+      <div class="seg3" id="themeSeg">
+        <button data-v="light">Hell</button><button data-v="dark">Dunkel</button><button data-v="auto">Automatisch</button>
+      </div>
+    </div>
+    <div class="set">
+      <div class="si" style="background:var(--sky)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></div>
+      <div class="st"><b>Töne</b><small>Klänge bei richtig, falsch und Level-Up</small></div>
+      <button class="switch" role="switch" id="swSound" aria-label="Töne"></button>
+    </div>
+    <div class="set">
+      <div class="si" style="background:var(--coral)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M3 8v8M21 8v8"/></svg></div>
+      <div class="st"><b>Vibration</b><small id="vibNote">Kurzes Brummen bei Antworten</small></div>
+      <button class="switch" role="switch" id="swVib" aria-label="Vibration"></button>
+    </div>
+    <div class="set">
+      <div class="si" style="background:var(--mint)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5l12 7-12 7z"/></svg></div>
+      <div class="st"><b>Testen</b><small>So klingt eine richtige Antwort</small></div>
+      <button class="btn small" id="setTest">Abspielen</button>
+    </div>
+    <div class="set" style="display:block">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="si" style="background:var(--ink)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+        <div class="st"><b>Admin-Modus</b><small>Alles ansehen und ausprobieren, ohne dass XP, Kristalle, Streak oder Fortschritt gespeichert werden</small></div>
+        <button class="switch" role="switch" id="swAdmin" aria-label="Admin-Modus"></button>
+      </div>
+      <form id="adminForm" class="row" style="margin-top:12px" hidden autocomplete="off">
+        <input type="text" id="adminCode" inputmode="numeric" placeholder="Code eingeben" aria-label="Admin-Code" class="grow" style="-webkit-text-security:disc">
+        <button class="btn small" type="submit">Freischalten</button>
+        <p class="muted" id="adminErr" style="margin:0;width:100%;color:var(--coral);font-weight:800" hidden>Falscher Code. Versuch es nochmal.</p>
+      </form>
+      <div id="adminTools" class="row" style="margin-top:12px" hidden>
+        <button class="btn grape small" id="admCoins">+100 Kristalle</button>
+        <button class="btn sky small" id="admXP">+50 XP</button>
+        <button class="btn sun small" id="admStreak">Streak +1</button>
+        <button class="btn soft small" id="admImport">Spielstand importieren</button>
+        <div id="importBox" hidden style="width:100%">
+          <textarea id="importText" rows="5" placeholder="Spielstand als JSON hier einfügen" aria-label="Spielstand als JSON"></textarea>
+          <div class="row" style="margin-top:8px"><button class="btn small" id="importGo" type="button">Übernehmen</button><span class="muted" id="importMsg"></span></div>
+          <p class="muted" style="margin:6px 0 0;font-size:.8rem">Ersetzt den ganzen Spielstand dieses Kindes und wird sofort gespeichert.</p>
+        </div>
+        <p class="muted" style="margin:0;width:100%;font-size:.8rem">Nur zum Testen. Beim Ausschalten ist alles wieder wie vorher.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
