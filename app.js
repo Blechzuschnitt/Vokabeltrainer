@@ -231,6 +231,7 @@ function fx(name){
   if (S.settings.vib && canVibrate && BUZZ[name]) { try{ navigator.vibrate(BUZZ[name]); }catch(e){} }
 }
 function renderSettings(){
+  $("delRow").hidden = !PROFILE; $("delBox").hidden = true;
   $("devRow").hidden = !(PROFILE && PROFILE.device_code); $("devCode").textContent = (PROFILE && PROFILE.device_code) || "";
   $("whoRow").textContent = PROFILE ? `${PROFILE.nickname} · ${PROFILE.class_name}` : "";
   document.querySelectorAll("#themeSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === S.settings.theme));
@@ -365,7 +366,7 @@ function initStore(){
   renderAll(); pull();
 }
 let joinMode = "new";
-const JOIN_ERR = {DEVICE_CODE:"Diesen Geräte-Code gibt es nicht. Prüfe ihn nochmal Zeichen für Zeichen.", CODE:"Diesen Klassen-Code gibt es nicht. Schau nochmal genau hin.", NAME_TAKEN:"Diesen Spitznamen gibt es in deiner Klasse schon. Nimm einen anderen.", NAME_LEN:"Dein Spitzname braucht 2 bis 16 Zeichen."};
+const JOIN_ERR = {CONSENT:"Hol bitte kurz deine Eltern: Sie müssen oben zustimmen.", DEVICE_CODE:"Diesen Geräte-Code gibt es nicht. Prüfe ihn nochmal Zeichen für Zeichen.", CODE:"Diesen Klassen-Code gibt es nicht. Schau nochmal genau hin.", NAME_TAKEN:"Diesen Spitznamen gibt es in deiner Klasse schon. Nimm einen anderen.", NAME_LEN:"Dein Spitzname braucht 2 bis 16 Zeichen."};
 $("joinForm").onsubmit = async e => {
   e.preventDefault();
   const name = $("joinNick").value.trim().replace(/\s+/g, " "), code = $("joinCode").value.trim().toUpperCase(), btn = $("joinBtn");
@@ -373,13 +374,14 @@ $("joinForm").onsubmit = async e => {
   const dev = $("joinDev").value.replace(/[^0-9a-z]/gi, "");
   if (joinMode === "old"){ if (dev.length !== 12) return fail("Der Geräte-Code hat 12 Zeichen."); }
   else {
+    if (!$("joinConsent").checked) return fail(JOIN_ERR.CONSENT);
     if (name.length < 2 || name.length > 16) return fail(JOIN_ERR.NAME_LEN);
     if (code.length !== 6) return fail("Der Klassen-Code hat 6 Zeichen.");
   }
   $("joinErr").hidden = true; btn.disabled = true; btn.textContent = "Einen Moment …";
   try{
     if (!SESSION) await sbAuth("signup", {data:{}});
-    PROFILE = joinMode === "old" ? await sb("rpc/link_device", {method:"POST", body:{p_code:dev}}) : await sb("rpc/join_class", {method:"POST", body:{p_code:code, p_nickname:name}});
+    PROFILE = joinMode === "old" ? await sb("rpc/link_device", {method:"POST", body:{p_code:dev}}) : await sb("rpc/join_class", {method:"POST", body:{p_code:code, p_nickname:name, p_consent:true}});
     jset(PRO_KEY, PROFILE); jset(SYNCED_KEY, false); btn.disabled = false; btn.textContent = "Los geht’s";
     renderAll(); pull(); fx("level"); confetti(100);
     // Nach dem ersten Beitritt den Geräte-Code einmal groß zeigen, sonst direkt in die App
@@ -397,6 +399,25 @@ $("joinSwitch").onclick = () => {
   (old ? $("joinDev") : $("joinNick")).focus();
 };
 $("joinDoneBtn").onclick = () => { $("join").hidden = true; $("joinDone").hidden = true; $("joinForm").hidden = false; };
+// Konto löschen: entfernt das Kind samt Spielstand auf dem Server und setzt dieses Gerät zurück
+function resetDevice(){
+  [LS_KEY, PRO_KEY, SYNCED_KEY, DIRTY_KEY, LB_KEY, AV_KEY, XPQ_KEY].forEach(k => { try{ localStorage.removeItem(k); }catch(e){} });
+  PROFILE = null; LB = null; ADMIN = false; BASE = null; S = seedState(); normalizeState(); applyTheme(); renderAdmin(); renderAll();
+  $("joinConsent").checked = false; $("joinNick").value = ""; $("joinCode").value = ""; $("join").hidden = false;
+}
+$("delOpen").onclick = () => { $("delBox").hidden = !$("delBox").hidden; $("delName").value = ""; $("delMsg").textContent = ""; if (!$("delBox").hidden) $("delName").focus(); };
+$("delCancel").onclick = () => { $("delBox").hidden = true; };
+$("delGo").onclick = async () => {
+  if ($("delName").value.trim().toLowerCase() !== PROFILE.nickname.toLowerCase()){ $("delMsg").textContent = "Der Spitzname stimmt nicht."; return; }
+  $("delGo").disabled = true; $("delMsg").textContent = "Löscht …";
+  try{
+    await sb("rpc/delete_account", {method:"POST", body:{}});
+    // Das anonyme Geräte-Konto ist mit gelöscht, außer das Gerät ist zugleich Admin-Gerät
+    try{ await sbToken(); await sb("rpc/admin_overview", {method:"POST", body:{}}).then(o => { if (!o) throw 0; }); }catch(e){ SESSION = null; try{ localStorage.removeItem(SES_KEY); }catch(err){} }
+    $("settings").hidden = true; resetDevice(); toast("Dein Konto ist gelöscht.");
+  }catch(e){ $("delMsg").textContent = "Das hat nicht geklappt. Prüfe die Internet-Verbindung."; }
+  $("delGo").disabled = false;
+};
 window.addEventListener("online", pull);
 document.addEventListener("visibilitychange", () => { document.hidden ? push() : pull(); });
 setInterval(push, 60000);
@@ -1462,7 +1483,7 @@ function pet3dWanted(){ return P3.ok && !RM && !!PETS[S.pet] && S.settings.pet3d
 function pet3dLib(){
   return P3.lib || (P3.lib = new Promise((res, rej) => {
     if (window.THREE) return res();
-    const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+    const s = document.createElement("script"); s.src = "vendor/three.min.js";
     s.onload = () => res(); s.onerror = rej; document.head.appendChild(s);
   }));
 }

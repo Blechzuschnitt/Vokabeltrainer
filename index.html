@@ -4,8 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Vokabeltrainer</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@500;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -246,6 +244,17 @@
     <h2>Willkommen beim Vokabeltrainer!</h2>
     <p class="muted">Such dir einen Spitznamen aus und tippe den Code deiner Klasse ein.</p>
     <div class="joinfields" id="joinNew">
+      <div class="consent">
+        <b>Für Eltern</b>
+        Die App speichert auf einem Server in Frankfurt (EU):
+        <ul>
+          <li>einen Spitznamen und die Klasse</li>
+          <li>den Lernstand: Vokabeln, XP, Kristalle, Streak, Pet und Outfit</li>
+          <li>wann eine Runde gespielt wurde und wie viele XP es gab</li>
+        </ul>
+        Nicht gespeichert werden Name, E-Mail, Fotos oder Standort. Es gibt keine Werbung und keine Tracker. Die Kinder der Klasse sehen in der Rangliste Spitzname, Pet und Wochen-XP der ersten zehn. Das Konto lässt sich jederzeit in den Einstellungen löschen. Mehr dazu: <a href="datenschutz.html" target="_blank" rel="noopener">Datenschutz</a>
+        <label class="chk"><input type="checkbox" id="joinConsent"> Ich bin Elternteil und stimme zu.</label>
+      </div>
       <label for="joinNick">Dein Spitzname</label>
       <input type="text" id="joinNick" maxlength="16" placeholder="z. B. Blitzfuchs" autocapitalize="words" autocorrect="off" spellcheck="false">
       <p class="joinhint">Bitte nicht deinen echten Namen. Die anderen in deiner Klasse sehen ihn später in der Rangliste.</p>
@@ -329,6 +338,18 @@
       <div class="st"><b>Geräte-Code</b><small>Für ein zweites Gerät oder ein neues Handy. Nur für dich und deine Eltern.</small></div>
       <div class="devcode" id="devCode"></div>
       <small class="muted" id="whoRow"></small>
+    </div>
+    <div class="set" id="delRow" style="display:block" hidden>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="si" style="background:var(--coral)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></div>
+        <div class="st"><b>Konto löschen</b><small>Löscht Spitzname, Spielstand und Rangliste von allen Geräten. <a href="datenschutz.html" target="_blank" rel="noopener">Datenschutz</a></small></div>
+        <button class="btn soft small" id="delOpen" type="button">Löschen …</button>
+      </div>
+      <div class="delbox" id="delBox" hidden>
+        <p>Das lässt sich nicht rückgängig machen. Tippe zur Sicherheit deinen Spitznamen ein:</p>
+        <input type="text" id="delName" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Spitzname zur Bestätigung">
+        <div class="row"><button class="btn coral small" id="delGo" type="button">Alles löschen</button><button class="btn soft small" id="delCancel" type="button">Abbrechen</button><span class="muted" id="delMsg"></span></div>
+      </div>
     </div>
     <div class="set">
       <div class="si" style="background:var(--ink)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>

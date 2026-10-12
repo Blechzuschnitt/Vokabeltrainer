@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Datenschutz – Vokabeltrainer</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .ds{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+  .ds h1{font-size:2rem;margin:8px 0 4px}
+  .ds h2{font-size:1.3rem;margin:26px 0 6px}
+  .ds p,.ds li{font-weight:600}
+  .ds ul{padding-left:20px;margin:6px 0}
+  .ds li{margin:4px 0}
+  .ds a{color:var(--sky);font-weight:800}
+  .ds .draft{background:color-mix(in srgb,var(--sun) 30%,var(--surface));border:2px solid var(--sun-d);border-radius:16px;padding:12px 14px;font-weight:800}
+  .ds table{width:100%;border-collapse:collapse;margin-top:8px}
+  .ds th,.ds td{text-align:left;vertical-align:top;padding:8px 6px;border-bottom:2px solid var(--surface-2);font-weight:600}
+  .ds th{font-weight:800}
+  .ds mark{background:color-mix(in srgb,var(--coral) 30%,transparent);color:inherit;padding:0 4px;border-radius:4px}
+</style>
+</head>
+<body>
+<main class="ds">
+  <p><a href="index.html">← Zurück zum Vokabeltrainer</a></p>
+  <h1>Datenschutz</h1>
+  <p class="muted">Stand: 12. Oktober 2026</p>
+  <p class="draft">Entwurf. Dieser Text ist keine Rechtsberatung und muss vor der Nutzung in der Klasse geprüft und mit der Schule abgestimmt werden. Gelb-rot markierte Stellen fehlen noch.</p>
+
+  <h2>Wer ist verantwortlich?</h2>
+  <p>Sascha Nelskamp, <mark>Anschrift ergänzen</mark>, E-Mail: <mark>Kontakt-Adresse ergänzen</mark>.<br>
+  Der Vokabeltrainer ist ein privates, kostenloses Angebot für die Kinder einer Schulklasse. Es gibt keine Werbung und keine Auswertung zu anderen Zwecken.</p>
+
+  <h2>Wofür werden Daten gespeichert?</h2>
+  <p>Damit ein Kind seinen Lernstand auf mehreren Geräten wiederfindet und die Klasse eine gemeinsame Wochen-Rangliste hat.</p>
+
+  <h2>Welche Daten werden gespeichert?</h2>
+  <table>
+    <tr><th>Was</th><th>Wozu</th><th>Wer sieht es</th></tr>
+    <tr><td>Spitzname (frei gewählt, bitte nicht der echte Name)</td><td>Anrede in der App, Rangliste</td><td>Kinder derselben Klasse, Klassen-Admin</td></tr>
+    <tr><td>Zugehörigkeit zu einer Klasse</td><td>Rangliste und Vokabellisten der Klasse</td><td>Klassen-Admin</td></tr>
+    <tr><td>Lernstand: Vokabeln mit richtig/falsch, XP, Level, Kristalle, Streak, gekaufte Dinge, Pet, Outfit, Pflegewerte, Einstellungen</td><td>Das Spiel selbst</td><td>Nur das Kind auf seinen Geräten</td></tr>
+    <tr><td>Pet und Outfit</td><td>Bild neben dem Spitznamen in der Rangliste</td><td>Kinder derselben Klasse</td></tr>
+    <tr><td>Pro gespielter Runde: Zeitpunkt, XP, Zahl der Wörter</td><td>Wochen-Rangliste</td><td>Die Summe der Woche sehen die Kinder der Klasse für die ersten zehn Plätze; jedes Kind sieht zusätzlich seinen eigenen Platz</td></tr>
+    <tr><td>Zeitpunkt der Zustimmung eines Elternteils</td><td>Nachweis der Einwilligung</td><td>Nur der Betreiber</td></tr>
+    <tr><td>Geräte-Code (nur als nicht umkehrbarer Hash) und eine zufällige Kennung pro Gerät</td><td>Anmeldung ohne E-Mail und Passwort, zweites Gerät</td><td>Niemand; der Code selbst steht nur auf dem Gerät des Kindes</td></tr>
+  </table>
+  <p>Nicht gespeichert werden: der echte Name, E-Mail-Adresse, Telefonnummer, Fotos des Kindes, Standort, Kontakte. Die App nutzt keine Cookies, keine Tracker und keine Werbung. Schriften, Bilder und Programmteile liegen auf dem Server der App selbst.</p>
+  <p>Wie bei jedem Internet-Angebot verarbeiten der Server, der die App ausliefert, und die Datenbank beim Abruf technisch die IP-Adresse des Geräts. <mark>Hosting-Anbieter der Web-App nach der Veröffentlichung ergänzen.</mark></p>
+
+  <h2>Wo liegen die Daten?</h2>
+  <p>In einer Datenbank des Dienstleisters Supabase, Serverstandort Frankfurt am Main (EU). Auf dem Gerät des Kindes liegt zusätzlich eine Kopie des Lernstands im Speicher des Browsers, damit die App ohne Internet weiterläuft.</p>
+  <p><mark>Vertrag zur Auftragsverarbeitung mit Supabase abschließen und hier nennen.</mark></p>
+
+  <h2>Fotos von Vokabelseiten</h2>
+  <p>Nur der Klassen-Admin kann Fotos von Schulbuch-Seiten einlesen lassen. Diese Fotos gehen dann zur Texterkennung an den KI-Dienst Claude der Firma Anthropic und werden in der App nicht gespeichert. Kinder können diese Funktion nicht benutzen. Es sollen keine Fotos hochgeladen werden, auf denen Personen oder Namen zu sehen sind.</p>
+
+  <h2>Rechtsgrundlage</h2>
+  <p>Einwilligung eines Elternteils beim ersten Start der App (Art. 6 Abs. 1 Buchstabe a und Art. 8 DSGVO). Die Einwilligung kann jederzeit widerrufen werden, am einfachsten durch Löschen des Kontos.</p>
+
+  <h2>Wie lange werden die Daten gespeichert?</h2>
+  <p>Bis das Konto gelöscht wird. <mark>Regel für verwaiste Konten festlegen, zum Beispiel Löschung nach dem Schuljahr.</mark></p>
+
+  <h2>Löschen, Auskunft, Berichtigung</h2>
+  <ul>
+    <li><b>Löschen:</b> In der App unter Einstellungen → „Konto löschen“. Damit werden Spitzname, Lernstand, Ranglisten-Einträge und die Geräte-Anmeldungen sofort vom Server gelöscht.</li>
+    <li><b>Spitzname ändern oder Konto entfernen lassen:</b> über den Klassen-Admin.</li>
+    <li><b>Auskunft und alle weiteren Rechte</b> nach der DSGVO (Auskunft, Berichtigung, Einschränkung, Datenübertragbarkeit, Widerspruch): formlos an die oben genannte Kontakt-Adresse.</li>
+    <li>Außerdem besteht ein Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde.</li>
+  </ul>
+</main>
+</body>
+</html>
