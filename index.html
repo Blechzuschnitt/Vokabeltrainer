@@ -46,7 +46,7 @@
   <div class="rings" id="rings"></div>
 
   <div class="label">Rangliste <span id="lbWhen"></span></div>
-  <div class="card tint-grape" id="lb"></div>
+  <button class="lbcard" id="lb" type="button" aria-haspopup="dialog"></button>
  </div>
  <div class="dcol">
 
@@ -271,6 +271,14 @@
   </div>
 </div>
 
+<div class="scrim" id="lbSheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="lbTitle">
+    <div class="grab"></div>
+    <h2 id="lbTitle">Rangliste <button class="close" id="lbClose" aria-label="Schließen">✕</button></h2>
+    <p class="muted" id="lbSheetWhen" style="margin:0 0 12px"></p>
+    <div id="lbList"></div>
+  </div>
+</div>
 <div class="scrim" id="rewards" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rewTitle">
     <div class="grab"></div>

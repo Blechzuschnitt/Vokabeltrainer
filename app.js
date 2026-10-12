@@ -401,11 +401,21 @@ function lbAvatar(a){
   const o = {}; SLOTS.forEach(([k]) => { const v = a.outfit && a.outfit[k]; if (typeof v === "string" && own(WEAR, v)) o[k] = v; });
   return avatarSVG(a.pet, o);
 }
+// Auf der Startseite steht nur der eigene Platz. Die Top 10 (plus eigener Platz) öffnen sich beim Antippen.
 function renderLB(){
   const el = $("lb"); if (!el) return;
-  if (!LB){ el.innerHTML = `<p class="muted" style="margin:0">Die Rangliste erscheint, sobald du online bist.</p>`; $("lbWhen").textContent = ""; return; }
+  const CHEV = `<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>`;
+  if (!LB){
+    el.disabled = true; el.innerHTML = `<span class="rk">?</span><span class="t"><b>Rangliste</b><small>Erscheint, sobald du online bist.</small></span>`;
+    $("lbWhen").textContent = ""; $("lbList").innerHTML = ""; return;
+  }
   const left = new Date(LB.week_end) - Date.now(), days = Math.floor(left / 864e5), hrs = Math.floor(left % 864e5 / 36e5), mins = Math.max(1, Math.floor(left % 36e5 / 6e4));
-  $("lbWhen").textContent = left <= 0 ? "neue Woche" : "diese Woche · noch " + (days ? `${days} ${days === 1 ? "Tag" : "Tage"} ${hrs} Std.` : hrs ? `${hrs} Std. ${mins} Min.` : `${mins} Min.`);
+  const when = left <= 0 ? "neue Woche" : "noch " + (days ? `${days} ${days === 1 ? "Tag" : "Tage"} ${hrs} Std.` : hrs ? `${hrs} Std. ${mins} Min.` : `${mins} Min.`);
+  $("lbWhen").textContent = "diese Woche"; $("lbSheetWhen").textContent = `Diese Woche · ${when} bis zum Neustart`;
+  el.disabled = false;
+  el.innerHTML = LB.me
+    ? `<span class="rk r${LB.me.rank}">${LB.me.rank}</span><span class="t"><b>Du bist auf Platz ${LB.me.rank}</b><small>${LB.me.xp} XP diese Woche · ${when}</small></span>${CHEV}`
+    : `<span class="rk">–</span><span class="t"><b>Noch kein Platz</b><small>Spiel eine Runde, dann bist du dabei.</small></span>${CHEV}`;
   const row = r => `<li class="${r.me ? "me" : ""}"><span class="rk r${r.rank}">${r.rank}</span><span class="pp">${lbAvatar(r.avatar)}</span><span class="nm">${esc(r.nickname)}${r.me ? " <small>(du)</small>" : ""}</span><span class="x">${r.xp} XP</span></li>`;
   let h = LB.top.length ? `<ul class="plain lblist">${LB.top.map(row).join("")}` : `<p class="muted" style="margin:0">Diese Woche hat noch niemand XP gesammelt. Hol dir Platz 1!</p>`;
   if (LB.top.length){
@@ -413,8 +423,12 @@ function renderLB(){
     h += `</ul>`;
     if (!LB.me) h += `<p class="muted" style="margin:10px 0 0">Spiel eine Runde, dann stehst du auch auf der Liste!</p>`;
   }
-  el.innerHTML = h + `<p class="lbfoot">Eure Klasse zusammen: <b>${LB.class_xp} XP</b> · ${LB.players} ${LB.players === 1 ? "Kind" : "Kinder"} dabei</p>`;
+  $("lbList").innerHTML = h + `<p class="lbfoot">Gezeigt werden nur die ersten 10 Plätze und dein eigener.<br>Eure Klasse zusammen: <b>${LB.class_xp} XP</b></p>`;
 }
+$("lb").onclick = () => { $("lbSheet").hidden = false; fx("tap"); loadLB(); };
+$("lbClose").onclick = () => { $("lbSheet").hidden = true; };
+$("lbSheet").addEventListener("click", e => { if (e.target === $("lbSheet")) $("lbSheet").hidden = true; });
+document.addEventListener("keydown", e => { if (e.key === "Escape") $("lbSheet").hidden = true; });
 // Nach einer Runde: buchen, Rangliste neu holen und die Platz-Änderung zeigen
 async function rankAfterRound(xp, words){
   const before = LB && LB.me ? LB.me.rank : null;
