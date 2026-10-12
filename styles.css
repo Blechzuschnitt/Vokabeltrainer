@@ -572,6 +572,9 @@ body.inquiz .lvlrow{margin-top:0}
 .joinpet img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 5px rgba(0,0,0,.2))}
 .joinhint{margin:0;font-size:.82rem;color:var(--muted-ink);font-weight:700}
 .joinerr{margin:4px 0 0;padding:10px 14px;border-radius:14px;background:color-mix(in srgb,var(--coral) 18%,var(--surface));border:2px solid var(--coral);font-weight:800}
-#joinCode{text-transform:uppercase;letter-spacing:.2em;font-family:var(--display);font-size:1.3rem}
-#joinCode::placeholder{letter-spacing:0;font:600 1rem var(--body);text-transform:none}
+.joinfields{display:grid;gap:8px}
+.codein{text-transform:uppercase;letter-spacing:.16em;font-family:var(--display)!important;font-size:1.25rem!important}
+.codein::placeholder{letter-spacing:0;font:600 1rem var(--body);text-transform:none}
+.joincard .link{justify-self:center}
+.devcode{font-family:var(--display);font-size:1.5rem;letter-spacing:.12em;text-align:center;padding:12px 8px;margin:6px 0;border-radius:16px;background:var(--surface-2);border:2px dashed var(--line);user-select:all;-webkit-user-select:all;overflow-wrap:anywhere}
 #importText{width:100%;font:600 .85rem ui-monospace,monospace;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:10px 12px;resize:vertical}

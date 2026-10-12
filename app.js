@@ -124,7 +124,7 @@ async function push(){
   if (!SESSION || !PROFILE || !jget(DIRTY_KEY)) return;
   const obj = lsGet(); if (!obj) return;
   try{
-    await sb("game_state?on_conflict=user_id", {method:"POST", headers:{Prefer:"resolution=merge-duplicates,return=minimal"}, body:{user_id:SESSION.uid, state:obj, updated_at:new Date().toISOString()}});
+    await sb("game_state?on_conflict=player_id", {method:"POST", headers:{Prefer:"resolution=merge-duplicates,return=minimal"}, body:{player_id:PROFILE.player_id, state:obj, updated_at:new Date().toISOString()}});
     if ((lsGet() || {}).rev === obj.rev) jset(DIRTY_KEY, false);
     setStorage("db");
   }catch(e){ setStorage("local"); }
@@ -133,7 +133,7 @@ async function push(){
 async function pull(){
   if (!SESSION || !PROFILE || ADMIN || Q) return;
   try{
-    const rows = await sb("game_state?select=state&user_id=eq." + SESSION.uid), remote = rows[0] && rows[0].state, first = !jget(SYNCED_KEY);
+    const rows = await sb("game_state?select=state&player_id=eq." + PROFILE.player_id), remote = rows[0] && rows[0].state, first = !jget(SYNCED_KEY);
     if (remote && Array.isArray(remote.words) && (first || (remote.rev || 0) > (S.rev || 0))){
       S = remote; normalizeState(); lsSet(S); jset(DIRTY_KEY, false); applyTheme(); renderAll();
     } else if (!remote || (S.rev || 0) > (remote.rev || 0)){ if (!S.rev) S.rev = Date.now(); lsSet(S); jset(DIRTY_KEY, true); await push(); }
@@ -206,6 +206,8 @@ function fx(name){
   if (S.settings.vib && canVibrate && BUZZ[name]) { try{ navigator.vibrate(BUZZ[name]); }catch(e){} }
 }
 function renderSettings(){
+  $("devRow").hidden = !(PROFILE && PROFILE.device_code); $("devCode").textContent = (PROFILE && PROFILE.device_code) || "";
+  $("whoRow").textContent = PROFILE ? `${PROFILE.nickname} · ${PROFILE.class_name}` : "";
   document.querySelectorAll("#themeSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === S.settings.theme));
   $("swSound").setAttribute("aria-checked", !!S.settings.sound);
   $("swVib").setAttribute("aria-checked", canVibrate && !!S.settings.vib);
@@ -337,24 +339,39 @@ function initStore(){
   if (!SESSION || !PROFILE){ $("join").hidden = false; setTimeout(() => $("joinNick").focus(), 50); return; }
   renderAll(); pull();
 }
-const JOIN_ERR = {CODE:"Diesen Klassen-Code gibt es nicht. Schau nochmal genau hin.", NAME_TAKEN:"Diesen Spitznamen gibt es in deiner Klasse schon. Nimm einen anderen.", NAME_LEN:"Dein Spitzname braucht 2 bis 16 Zeichen."};
+let joinMode = "new";
+const JOIN_ERR = {DEVICE_CODE:"Diesen Geräte-Code gibt es nicht. Prüfe ihn nochmal Zeichen für Zeichen.", CODE:"Diesen Klassen-Code gibt es nicht. Schau nochmal genau hin.", NAME_TAKEN:"Diesen Spitznamen gibt es in deiner Klasse schon. Nimm einen anderen.", NAME_LEN:"Dein Spitzname braucht 2 bis 16 Zeichen."};
 $("joinForm").onsubmit = async e => {
   e.preventDefault();
   const name = $("joinNick").value.trim().replace(/\s+/g, " "), code = $("joinCode").value.trim().toUpperCase(), btn = $("joinBtn");
   const fail = m => { $("joinErr").textContent = m; $("joinErr").hidden = false; btn.disabled = false; btn.textContent = "Los geht’s"; };
-  if (name.length < 2 || name.length > 16) return fail(JOIN_ERR.NAME_LEN);
-  if (code.length !== 6) return fail("Der Klassen-Code hat 6 Zeichen.");
+  const dev = $("joinDev").value.replace(/[^0-9a-z]/gi, "");
+  if (joinMode === "old"){ if (dev.length !== 12) return fail("Der Geräte-Code hat 12 Zeichen."); }
+  else {
+    if (name.length < 2 || name.length > 16) return fail(JOIN_ERR.NAME_LEN);
+    if (code.length !== 6) return fail("Der Klassen-Code hat 6 Zeichen.");
+  }
   $("joinErr").hidden = true; btn.disabled = true; btn.textContent = "Einen Moment …";
   try{
     if (!SESSION) await sbAuth("signup", {data:{}});
-    const p = await sb("rpc/join_class", {method:"POST", body:{p_code:code, p_nickname:name}});
-    PROFILE = {nickname:p.nickname, class_id:p.class_id, class_name:p.class_name}; jset(PRO_KEY, PROFILE);
-    $("join").hidden = true; renderAll(); pull(); toast(`Willkommen, ${PROFILE.nickname}!`); fx("level"); confetti(100);
+    PROFILE = joinMode === "old" ? await sb("rpc/link_device", {method:"POST", body:{p_code:dev}}) : await sb("rpc/join_class", {method:"POST", body:{p_code:code, p_nickname:name}});
+    jset(PRO_KEY, PROFILE); jset(SYNCED_KEY, false); btn.disabled = false; btn.textContent = "Los geht’s";
+    renderAll(); pull(); fx("level"); confetti(100);
+    // Nach dem ersten Beitritt den Geräte-Code einmal groß zeigen, sonst direkt in die App
+    if (PROFILE.device_code){ $("joinForm").hidden = true; $("joinDone").hidden = false; $("joinDoneName").textContent = `Willkommen, ${PROFILE.nickname}!`; $("joinDoneCode").textContent = PROFILE.device_code; }
+    else { $("join").hidden = true; toast(`Willkommen zurück, ${PROFILE.nickname}!`); }
   }catch(err){
     fail(JOIN_ERR[err.message] || (err.code === "anonymous_provider_disabled" ? "Die Anmeldung ist noch nicht freigeschaltet. Sag bitte deinen Eltern Bescheid."
       : navigator.onLine === false ? "Keine Internet-Verbindung. Für die erste Anmeldung brauchst du Internet." : "Das hat gerade nicht geklappt. Versuch es gleich nochmal."));
   }
 };
+$("joinSwitch").onclick = () => {
+  joinMode = joinMode === "new" ? "old" : "new"; const old = joinMode === "old";
+  $("joinNew").hidden = old; $("joinOld").hidden = !old; $("joinErr").hidden = true;
+  $("joinSwitch").textContent = old ? "Ich bin neu und habe einen Klassen-Code" : "Ich habe schon einen Geräte-Code";
+  (old ? $("joinDev") : $("joinNick")).focus();
+};
+$("joinDoneBtn").onclick = () => { $("join").hidden = true; $("joinDone").hidden = true; $("joinForm").hidden = false; };
 window.addEventListener("online", pull);
 document.addEventListener("visibilitychange", () => { document.hidden ? push() : pull(); });
 setInterval(push, 60000);

@@ -242,14 +242,30 @@
     <div class="joinpet"><img src="assets/fox.webp" alt=""></div>
     <h2>Willkommen beim Vokabeltrainer!</h2>
     <p class="muted">Such dir einen Spitznamen aus und tippe den Code deiner Klasse ein.</p>
-    <label for="joinNick">Dein Spitzname</label>
-    <input type="text" id="joinNick" maxlength="16" placeholder="z. B. Blitzfuchs" autocapitalize="words" autocorrect="off" spellcheck="false">
-    <p class="joinhint">Bitte nicht deinen echten Namen. Die anderen in deiner Klasse sehen ihn später in der Rangliste.</p>
-    <label for="joinCode">Klassen-Code</label>
-    <input type="text" id="joinCode" maxlength="6" placeholder="6 Zeichen" autocapitalize="characters" autocorrect="off" spellcheck="false">
+    <div class="joinfields" id="joinNew">
+      <label for="joinNick">Dein Spitzname</label>
+      <input type="text" id="joinNick" maxlength="16" placeholder="z. B. Blitzfuchs" autocapitalize="words" autocorrect="off" spellcheck="false">
+      <p class="joinhint">Bitte nicht deinen echten Namen. Die anderen in deiner Klasse sehen ihn später in der Rangliste.</p>
+      <label for="joinCode">Klassen-Code</label>
+      <input type="text" id="joinCode" class="codein" maxlength="6" placeholder="6 Zeichen" autocapitalize="characters" autocorrect="off" spellcheck="false">
+    </div>
+    <div class="joinfields" id="joinOld" hidden>
+      <label for="joinDev">Geräte-Code</label>
+      <input type="text" id="joinDev" class="codein" maxlength="14" placeholder="XXXX-XXXX-XXXX" autocapitalize="characters" autocorrect="off" spellcheck="false">
+      <p class="joinhint">Er steht auf dem anderen Gerät in den Einstellungen unter „Geräte-Code“.</p>
+    </div>
     <p class="joinerr" id="joinErr" hidden role="alert"></p>
     <button class="btn wide" id="joinBtn" type="submit">Los geht’s</button>
+    <button class="link" id="joinSwitch" type="button">Ich habe schon einen Geräte-Code</button>
   </form>
+  <div class="joincard" id="joinDone" hidden>
+    <div class="joinpet"><img src="assets/fox.webp" alt=""></div>
+    <h2 id="joinDoneName">Willkommen!</h2>
+    <p class="muted">Das ist dein Geräte-Code. Zeig ihn deinen Eltern, sie schreiben ihn auf.</p>
+    <div class="devcode" id="joinDoneCode"></div>
+    <p class="joinhint">Mit dem Code kommst du auf einem zweiten Gerät oder einem neuen Handy wieder an deinen Spielstand. Du findest ihn später in den Einstellungen.</p>
+    <button class="btn wide" id="joinDoneBtn" type="button">Weiter</button>
+  </div>
 </div>
 
 <div class="scrim" id="rewards" hidden>
@@ -296,6 +312,11 @@
       <div class="si" style="background:var(--mint)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5l12 7-12 7z"/></svg></div>
       <div class="st"><b>Testen</b><small>So klingt eine richtige Antwort</small></div>
       <button class="btn small" id="setTest">Abspielen</button>
+    </div>
+    <div class="set" id="devRow" style="display:block" hidden>
+      <div class="st"><b>Geräte-Code</b><small>Für ein zweites Gerät oder ein neues Handy. Nur für dich und deine Eltern.</small></div>
+      <div class="devcode" id="devCode"></div>
+      <small class="muted" id="whoRow"></small>
     </div>
     <div class="set" style="display:block">
       <div style="display:flex;align-items:center;gap:14px">
